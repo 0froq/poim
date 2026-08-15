@@ -1,0 +1,68 @@
+{
+  "name": "poim",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.15.0",
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "lint": "eslint . --cache --concurrency=auto",
+    "lint:fix": "eslint . --cache --concurrency=auto --fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "postinstall": "nuxt prepare",
+    "prepare": "npx simple-git-hooks"
+  },
+  "dependencies": {
+    "@fontsource-variable/eb-garamond": "catalog:prod",
+    "@fontsource-variable/instrument-sans": "catalog:prod",
+    "@vueuse/core": "catalog:prod",
+    "@vueuse/nuxt": "catalog:prod",
+    "isomorphic-dompurify": "catalog:prod",
+    "modern-screenshot": "catalog:prod",
+    "nuxt": "catalog:prod",
+    "roughjs": "catalog:prod",
+    "vue": "catalog:prod",
+    "zod": "catalog:prod"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "catalog:dev",
+    "@codemirror/commands": "catalog:frontend",
+    "@codemirror/lang-css": "catalog:frontend",
+    "@codemirror/lang-html": "catalog:frontend",
+    "@codemirror/state": "catalog:frontend",
+    "@codemirror/theme-one-dark": "catalog:frontend",
+    "@codemirror/view": "catalog:frontend",
+    "@iconify-json/carbon": "catalog:dev",
+    "@iconify-json/solar": "catalog:dev",
+    "@nuxt/eslint": "catalog:dev",
+    "@unocss/eslint-plugin": "catalog:dev",
+    "@unocss/nuxt": "catalog:dev",
+    "@unocss/preset-attributify": "catalog:dev",
+    "@unocss/preset-icons": "catalog:dev",
+    "@unocss/preset-tagify": "catalog:dev",
+    "@unocss/preset-typography": "catalog:dev",
+    "@unocss/preset-wind4": "catalog:dev",
+    "@unocss/transformer-directives": "catalog:dev",
+    "@unocss/transformer-variant-group": "catalog:dev",
+    "eslint": "catalog:dev",
+    "eslint-plugin-format": "catalog:dev",
+    "happy-dom": "catalog:dev",
+    "lint-staged": "catalog:dev",
+    "simple-git-hooks": "catalog:dev",
+    "typescript": "catalog:dev",
+    "unocss": "catalog:dev",
+    "vitest": "catalog:dev",
+    "vue-tsc": "catalog:dev",
+    "wrangler": "catalog:dev"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm i --frozen-lockfile --ignore-scripts --offline && npx lint-staged"
+  },
+  "lint-staged": {
+    "*": "eslint --fix"
+  }
+}
