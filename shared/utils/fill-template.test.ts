@@ -27,13 +27,21 @@ describe('fillTemplate', () => {
 })
 
 describe('serializePoimEmbed', () => {
-  it('emits declarative shadow DOM', () => {
+  it('emits declarative shadow DOM with frozen theme + canonical JSON', () => {
+    const post = emptyPost()
+    post.author.name = 'jack'
+    post.text = 'hello </script>'
     const html = serializePoimEmbed({
-      innerHTML: '<article class="poim-card"></article>',
+      innerHTML: '<div class="poim-card"></div>',
       css: '.poim-card{color:red}',
-      theme: 'light',
+      theme: 'dark',
+      post,
     })
     expect(html).toContain('shadowrootmode="open"')
-    expect(html).toContain('data-theme="light"')
+    expect(html).toContain('data-theme="dark"')
+    expect(html).toContain('type="application/json"')
+    // 载荷内 </script> 被转义，全片只应有块自身的收尾 </script>
+    expect(html).toContain('\\u003c/script')
+    expect(html.match(/<\/script>/g)).toHaveLength(1)
   })
 })

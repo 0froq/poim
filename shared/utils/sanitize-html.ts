@@ -48,10 +48,20 @@ export function getDomPurifyConfig(): Record<string, unknown> {
       'muted',
       'playsinline',
     ],
-    ALLOW_DATA_ATTR: false,
     ALLOWED_URI_REGEXP: /^(?:https?:|data:image\/|\/|#)/i,
   }
 }
+
+// 只放行 data-poim 槽位标记，其余 data-* 一律剥掉。
+// （不能用 ALLOW_DATA_ATTR: false —— 那会让 data-poim 落入 URI 安全检查，值非 URL 时被误删。）
+DOMPurify.addHook('afterSanitizeAttributes', (node: unknown) => {
+  if (typeof (node as { getAttributeNames?: () => string[] }).getAttributeNames !== 'function')
+    return
+  for (const name of (node as { getAttributeNames: () => string[] }).getAttributeNames()) {
+    if (name.startsWith('data-') && name !== 'data-poim')
+      (node as { removeAttribute: (n: string) => void }).removeAttribute(name)
+  }
+})
 
 function isHttpUrl(href: string): boolean {
   return /^https?:\/\//i.test(href)

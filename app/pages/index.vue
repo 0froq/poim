@@ -21,6 +21,7 @@ async function copyEmbed(): Promise<void> {
     innerHTML: card.outerHTML,
     css,
     theme: gen.theme,
+    post: gen.post,
   })
   await navigator.clipboard.writeText(html)
   copied.value = true

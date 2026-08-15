@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import type { PoimPost, PoimPresetId, PoimTheme } from '~~/shared/types/post'
-import DOMPurify from 'isomorphic-dompurify'
 import { fillTemplate } from '~~/shared/utils/fill-template'
 import { toProxyMediaUrl } from '~~/shared/utils/media-url'
 import { sanitizeUserCss } from '~~/shared/utils/sanitize-css'
-import { getDomPurifyConfig } from '~~/shared/utils/sanitize-html'
+import { sanitizeHtmlFragment } from '~~/shared/utils/sanitize-html'
 import { decorateRough } from '~/utils/decorate-rough'
 
 interface Props {
@@ -29,7 +28,7 @@ function paint(): void {
   if (!stage)
     return
 
-  const clean = DOMPurify.sanitize(props.html, getDomPurifyConfig())
+  const clean = sanitizeHtmlFragment(props.html)
   const parsed = new DOMParser().parseFromString(clean, 'text/html')
   const card = parsed.body.firstElementChild as HTMLElement | null
   stage.replaceChildren()
@@ -73,7 +72,12 @@ defineExpose({
   stageRef,
   combinedCss,
   getInnerCard(): HTMLElement | null {
-    return stageRef.value?.querySelector('.poim-card') ?? stageRef.value?.querySelector('article') ?? null
+    const stage = stageRef.value
+    if (!stage)
+      return null
+    return stage.querySelector('.poim-card')
+      ?? Array.from(stage.children).find(node => node instanceof HTMLElement && node.tagName !== 'STYLE') as HTMLElement | undefined
+      ?? null
   },
 })
 </script>

@@ -49,14 +49,15 @@ function renderMedia(container: HTMLElement, media: PoimMedia[], mediaSrc: (url:
   for (const item of media) {
     if (item.type === 'video' || item.type === 'gif') {
       const video = document.createElement('video')
-      video.src = mediaSrc(item.url)
+      video.setAttribute('src', mediaSrc(item.url))
       if (item.poster)
-        video.poster = mediaSrc(item.poster)
-      video.loop = true
-      video.muted = true
-      video.autoplay = true
-      video.playsInline = true
-      video.controls = item.type === 'video'
+        video.setAttribute('poster', mediaSrc(item.poster))
+      video.setAttribute('loop', '')
+      video.setAttribute('muted', '')
+      video.setAttribute('autoplay', '')
+      video.setAttribute('playsinline', '')
+      if (item.type === 'video')
+        video.setAttribute('controls', '')
       video.className = 'poim-video'
       container.append(video)
     }
