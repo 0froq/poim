@@ -124,15 +124,6 @@ const TOKEN_CSS = `
   font-style: italic;
   font-family: var(--poim-serif);
 }
-.poim-rough {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  color: var(--poim-fg);
-  overflow: visible;
-}
 `
 
 const PLAIN_EXTRA = `
@@ -153,18 +144,6 @@ const MINIMAL_EXTRA = `
 .poim-footer { border-top-style: solid; }
 `
 
-const DOODLE_EXTRA = `
-.poim-card {
-  font-family: Caveat, var(--poim-sans);
-  font-size: 1.15rem;
-  transform: rotate(-0.8deg);
-  border-style: solid;
-  background: color-mix(in srgb, var(--poim-card) 92%, #e7dccb);
-}
-.poim-name, .poim-text { font-family: Caveat, cursive; }
-.poim-handle { font-size: 0.95em; }
-`
-
 const HUMANIST_EXTRA = `
 .poim-card { font-family: var(--poim-serif); }
 .poim-text { font-size: 1.12em; line-height: 1.8; }
@@ -175,7 +154,6 @@ const HUMANIST_EXTRA = `
 export const POIM_PRESETS: PoimPreset[] = [
   { id: 'plain', label: '普通', html: BASE_HTML, css: TOKEN_CSS + PLAIN_EXTRA },
   { id: 'minimal', label: '简洁', html: BASE_HTML, css: TOKEN_CSS + MINIMAL_EXTRA },
-  { id: 'doodle', label: '手绘', html: BASE_HTML, css: TOKEN_CSS + DOODLE_EXTRA },
   { id: 'humanist', label: '人文', html: BASE_HTML, css: TOKEN_CSS + HUMANIST_EXTRA },
 ]
 

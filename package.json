@@ -25,7 +25,6 @@
     "isomorphic-dompurify": "catalog:prod",
     "modern-screenshot": "catalog:prod",
     "nuxt": "catalog:prod",
-    "roughjs": "catalog:prod",
     "vue": "catalog:prod",
     "zod": "catalog:prod"
   },

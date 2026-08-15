@@ -4,7 +4,6 @@ import { fillTemplate } from '~~/shared/utils/fill-template'
 import { toProxyMediaUrl } from '~~/shared/utils/media-url'
 import { sanitizeUserCss } from '~~/shared/utils/sanitize-css'
 import { sanitizeHtmlFragment } from '~~/shared/utils/sanitize-html'
-import { decorateRough } from '~/utils/decorate-rough'
 
 interface Props {
   post: PoimPost
@@ -55,9 +54,6 @@ function paint(): void {
     brand.hidden = true
 
   stage.append(card)
-
-  if (props.presetId === 'doodle')
-    decorateRough(card)
 }
 
 watch(
