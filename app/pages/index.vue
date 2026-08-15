@@ -54,281 +54,268 @@ const hasMotion = computed(() =>
 </script>
 
 <template>
-  <div
-    un-pb-20
-    un-grid
-    un-gap-12
-    un-md:grid-cols-2
-  >
-    <section>
-      <h1
-        un-font-serif
-        un-text-3xl
-        un-text-stone-800
-        un-dark:text-stone-200
-        un-mb-2
-      >
-        做成一张卡片
-      </h1>
-      <p
-        un-text-stone-500
-        un-mb-8
-        un-leading-7
-      >
-        贴 X 链接，或手填。导出 Web Component 快照与 PNG。v1 只跑通 X。
-      </p>
+  <div class="gen-layout">
+    <!-- 左栏：输入与设置 -->
+    <section
+      un-space-y-8
+      un-min-w-0
+    >
+      <div>
+        <h1
+          un-font-serif
+          un-text-3xl
+          un-text-ink
+        >
+          做成一张卡片
+        </h1>
+        <p
+          un-mt-2
+          un-text-sm
+          un-leading-6
+          un-text-muted
+        >
+          贴 X 链接，或手填。导出 Web Component 快照与 PNG。v1 只跑通 X。
+        </p>
+      </div>
 
-      <div
-        un-flex
-        un-gap-3
-        un-mb-6
-        un-flex-wrap
-      >
+      <!-- 平台选择 -->
+      <div class="poim-tabs">
         <button
           v-for="item in gen.placeholderPlatforms"
           :key="item.id"
           type="button"
-          un-text-sm
-          un-border-b
-          un-pb-0.5
-          :un-border-dashed="gen.platform !== item.id"
-          :un-border-stone-800="gen.platform === item.id && item.enabled"
-          :un-text-stone-800="item.enabled"
-          :un-dark:text-stone-200="item.enabled"
-          :un-text-stone-400="!item.enabled"
+          class="poim-tab"
+          :class="[
+            gen.platform === item.id && item.enabled ? 'poim-tab--active' : '',
+            !item.enabled ? 'poim-tab--disabled' : '',
+          ]"
+          :aria-pressed="gen.platform === item.id && item.enabled"
           :disabled="!item.enabled"
           @click="item.enabled && (gen.platform = item.id)"
         >
           {{ item.label }}
           <span
             v-if="!item.enabled"
-            un-ml-1
-            un-text-xs
+            class="poim-tag"
           >即将支持</span>
         </button>
       </div>
 
-      <label
-        un-block
-        un-text-sm
-        un-text-stone-500
-        un-mb-6
-      >
-        链接
+      <!-- 链接 -->
+      <div>
+        <label
+          class="poim-label"
+          for="poim-url"
+        >
+          链接
+        </label>
         <input
+          id="poim-url"
           v-model="gen.url"
           type="url"
+          class="poim-field poim-field--mono"
           placeholder="https://x.com/name/status/…"
-          un-block
-          un-w-full
-          un-mt-2
-          un-bg-transparent
-          un-border-b
-          un-border-dashed
-          un-border-stone-400
-          un-py-1
-          un-outline-none
-          un-focus:border-solid
-          un-focus:border-stone-800
-          un-dark:focus:border-stone-200
         >
-      </label>
-      <p
-        v-if="gen.resolving"
-        un-text-sm
-        un-text-stone-500
-        un-mb-4
-      >
-        正在拉取…
-      </p>
-      <p
-        v-else-if="gen.resolveError"
-        un-text-sm
-        un-text-rose-800
-        un-dark:text-rose-300
-        un-mb-4
-      >
-        {{ gen.resolveError }}
-      </p>
+        <p
+          v-if="gen.resolving"
+          un-mt-2
+          un-text-sm
+          un-text-muted
+        >
+          正在拉取…
+        </p>
+        <p
+          v-else-if="gen.resolveError"
+          un-mt-2
+          un-text-sm
+          un-text-danger
+        >
+          {{ gen.resolveError }}
+        </p>
+      </div>
 
+      <!-- 手填 -->
       <fieldset
         :disabled="gen.formLocked"
-        un-grid
-        un-gap-4
+        un-m-0
+        un-border-0
+        un-p-0
+        un-space-y-5
       >
         <legend
-          un-text-sm
-          un-text-stone-500
+          class="poim-label"
           un-mb-2
         >
           {{ gen.formLocked ? '已从 URL 锁定' : '手填' }}
         </legend>
         <input
           v-model="gen.post.author.name"
+          class="poim-field"
           placeholder="显示名"
-          un-bg-transparent
-          un-border-b
-          un-border-dashed
-          un-border-stone-400
-          un-py-1
-          un-outline-none
         >
         <input
           v-model="gen.post.author.handle"
+          class="poim-field"
           placeholder="@handle"
-          un-bg-transparent
-          un-border-b
-          un-border-dashed
-          un-border-stone-400
-          un-py-1
-          un-outline-none
         >
         <textarea
           v-model="gen.post.text"
+          class="poim-textarea"
           rows="5"
           placeholder="正文"
-          un-bg-transparent
-          un-border
-          un-border-dashed
-          un-border-stone-400
-          un-p-2
-          un-w-full
-          un-outline-none
-          un-leading-7
         />
       </fieldset>
 
+      <!-- 卡片设置 -->
+      <div>
+        <p
+          class="poim-label"
+          un-mb-2.5
+        >
+          卡片
+        </p>
+        <div
+          un-flex
+          un-flex-wrap
+          un-gap-2
+        >
+          <button
+            v-for="preset in POIM_PRESETS"
+            :key="preset.id"
+            type="button"
+            class="poim-btn"
+            :class="{ 'poim-btn--active': gen.presetId === preset.id }"
+            :aria-pressed="gen.presetId === preset.id"
+            @click="gen.presetId = preset.id"
+          >
+            {{ preset.label }}
+          </button>
+          <button
+            type="button"
+            class="poim-btn"
+            @click="gen.theme = gen.theme === 'light' ? 'dark' : 'light'"
+          >
+            卡片：{{ gen.theme === 'light' ? '浅' : '深' }}
+          </button>
+          <button
+            type="button"
+            class="poim-btn"
+            @click="gen.showBrand = !gen.showBrand"
+          >
+            {{ gen.showBrand ? '隐藏 poim' : '显示 poim' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- 高级：HTML / CSS -->
+      <div>
+        <button
+          type="button"
+          class="poim-btn poim-btn--ghost"
+          @click="gen.advanced = !gen.advanced"
+        >
+          {{ gen.advanced ? '收起 HTML / CSS' : '高级：编辑 HTML / CSS' }}
+        </button>
+
+        <div
+          v-if="gen.advanced"
+          class="poim-panel"
+          un-mt-3
+          un-overflow-hidden
+        >
+          <div class="poim-tabs">
+            <button
+              type="button"
+              class="poim-tab"
+              :class="{ 'poim-tab--active': editorTab === 'css' }"
+              :aria-pressed="editorTab === 'css'"
+              @click="editorTab = 'css'"
+            >
+              CSS
+            </button>
+            <button
+              type="button"
+              class="poim-tab"
+              :class="{ 'poim-tab--active': editorTab === 'html' }"
+              :aria-pressed="editorTab === 'html'"
+              @click="editorTab = 'html'"
+            >
+              HTML
+            </button>
+          </div>
+          <ClientOnly>
+            <CodeEditor
+              v-if="editorTab === 'css'"
+              v-model="gen.userCss"
+              lang="css"
+            />
+            <CodeEditor
+              v-else
+              v-model="gen.userHtml"
+              lang="html"
+            />
+          </ClientOnly>
+        </div>
+      </div>
+    </section>
+
+    <!-- 右栏：预览台面 + 导出 -->
+    <section
+      un-min-w-0
+      un-md:sticky
+      un-md:top-6
+      un-self-start
+    >
+      <div class="poim-panel">
+        <div class="stage-frame">
+          <ClientOnly>
+            <CardPreview
+              ref="preview"
+              :post="gen.post"
+              :html="gen.htmlLocked"
+              :user-css="gen.userCss"
+              :preset-css="gen.preset.css"
+              :theme="gen.theme"
+              :preset-id="gen.presetId"
+              :show-brand="gen.showBrand"
+            />
+            <template #fallback>
+              <p
+                un-text-sm
+                un-text-muted
+              >
+                预览在客户端绘制
+              </p>
+            </template>
+          </ClientOnly>
+        </div>
+        <p
+          un-px-5
+          un-pb-3.5
+          un-pt-1
+          un-text-xs
+          un-text-faint
+        >
+          预览即导出 · PNG 为当前帧
+        </p>
+      </div>
+
       <div
-        un-mt-8
+        un-mt-5
         un-flex
         un-flex-wrap
         un-gap-3
       >
         <button
-          v-for="preset in POIM_PRESETS"
-          :key="preset.id"
           type="button"
-          un-text-sm
-          un-border-b
-          un-pb-0.5
-          :un-border-solid="gen.presetId === preset.id"
-          :un-border-dashed="gen.presetId !== preset.id"
-          @click="gen.presetId = preset.id"
-        >
-          {{ preset.label }}
-        </button>
-        <button
-          type="button"
-          un-text-sm
-          un-ml-4
-          un-border-b
-          un-border-dashed
-          @click="gen.theme = gen.theme === 'light' ? 'dark' : 'light'"
-        >
-          卡片：{{ gen.theme === 'light' ? '浅' : '深' }}
-        </button>
-        <button
-          type="button"
-          un-text-sm
-          un-border-b
-          un-border-dashed
-          @click="gen.showBrand = !gen.showBrand"
-        >
-          {{ gen.showBrand ? '隐藏 poim' : '显示 poim' }}
-        </button>
-      </div>
-
-      <button
-        type="button"
-        un-mt-6
-        un-text-sm
-        un-border-b
-        un-border-dashed
-        @click="gen.advanced = !gen.advanced"
-      >
-        {{ gen.advanced ? '收起 HTML / CSS' : '高级：编辑 HTML / CSS' }}
-      </button>
-
-      <div
-        v-if="gen.advanced"
-        un-mt-4
-      >
-        <div
-          un-flex
-          un-gap-3
-          un-mb-2
-        >
-          <button
-            type="button"
-            un-text-sm
-            @click="editorTab = 'css'"
-          >
-            CSS
-          </button>
-          <button
-            type="button"
-            un-text-sm
-            @click="editorTab = 'html'"
-          >
-            HTML
-          </button>
-        </div>
-        <ClientOnly>
-          <CodeEditor
-            v-if="editorTab === 'css'"
-            v-model="gen.userCss"
-            lang="css"
-          />
-          <CodeEditor
-            v-else
-            v-model="gen.userHtml"
-            lang="html"
-          />
-        </ClientOnly>
-      </div>
-    </section>
-
-    <section>
-      <ClientOnly>
-        <CardPreview
-          ref="preview"
-          :post="gen.post"
-          :html="gen.htmlLocked"
-          :user-css="gen.userCss"
-          :preset-css="gen.preset.css"
-          :theme="gen.theme"
-          :preset-id="gen.presetId"
-          :show-brand="gen.showBrand"
-        />
-        <template #fallback>
-          <p un-text-stone-500>
-            预览在客户端绘制
-          </p>
-        </template>
-      </ClientOnly>
-
-      <div
-        un-mt-8
-        un-flex
-        un-flex-wrap
-        un-gap-4
-      >
-        <button
-          type="button"
-          un-border-b
-          un-border-dashed
-          un-font-serif
-          un-italic
+          class="poim-btn poim-btn--ink"
           @click="copyEmbed"
         >
           {{ copied ? '已复制' : '复制 Web Component' }}
         </button>
         <button
           type="button"
-          un-border-b
-          un-border-dashed
-          un-font-serif
-          un-italic
+          class="poim-btn"
           @click="downloadPng"
         >
           下载 PNG
@@ -336,10 +323,7 @@ const hasMotion = computed(() =>
         <button
           v-if="hasMotion"
           type="button"
-          un-border-b
-          un-border-dashed
-          un-font-serif
-          un-italic
+          class="poim-btn poim-btn--ghost"
           @click="downloadMedia"
         >
           下载原视频

@@ -4,49 +4,63 @@ const { isDark, toggleWithTransition } = useThemeToggle()
 
 <template>
   <header
+    class="page-content"
     un-flex
-    un-items-baseline
+    un-items-center
     un-justify-between
     un-gap-6
-    un-py-8
-    class="page-content"
+    un-py-6
   >
     <NuxtLink
       to="/"
-      un-font-serif
-      un-text-2xl
-      un-tracking-wide
-      un-text-stone-800
-      un-dark:text-stone-200
+      class="poim-wordmark"
+      aria-label="poim 首页"
     >
+      <span
+        class="poim-mark"
+        aria-hidden="true"
+      />
       poim
     </NuxtLink>
+
     <div
       un-flex
       un-items-center
-      un-gap-4
+      un-gap-5
       un-text-sm
-      un-text-stone-500
     >
       <span
+        un-hidden
+        un-sm:inline
         un-font-serif
         un-italic
+        un-text-muted
       >
         帖子 → 卡片
       </span>
+
       <button
         type="button"
-        un-border-b
-        un-border-dashed
-        un-border-stone-500
-        un-transition
-        un-duration-200
-        un-hover:border-solid
-        un-hover:border-stone-800
-        un-dark:hover:border-stone-200
+        class="poim-btn"
+        :aria-label="isDark ? '切换到浅色' : '切换到深色'"
         @click="toggleWithTransition($event)"
       >
-        {{ isDark ? '浅色' : '深色' }}
+        <ClientOnly>
+          <span
+            v-if="isDark"
+            class="i-carbon-sun"
+            aria-hidden="true"
+          />
+          <span
+            v-else
+            class="i-carbon-moon"
+            aria-hidden="true"
+          />
+          {{ isDark ? '浅色' : '深色' }}
+          <template #fallback>
+            浅深
+          </template>
+        </ClientOnly>
       </button>
     </div>
   </header>

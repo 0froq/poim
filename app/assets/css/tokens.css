@@ -1,0 +1,53 @@
+/* poim 应用壳 token —— 纸与墨（Paper & Ink）
+ * 浅深是独立维度：token 定义在 :root，由 html.dark 整体翻转。
+ * 与卡片 token（作用域在 .poim-stage / :host，见 shared/utils/presets.ts）同名不同域：
+ * 应用壳 token 只存在于站点根，embed 只打包卡片 token + 预设 CSS，不会带壳 token。
+ * 组件不再写 dark: 变体——颜色一律通过 var(--poim-*) 取，由根翻转。
+ * 设计决策见 docs/design/app-shell.md。 */
+
+:root {
+  color-scheme: light;
+
+  /* 纸与墨 */
+  --poim-bg: #f3f1ec; /* 页面纸面（比个人站的 stone-100 更暖） */
+  --poim-surface: #faf8f3; /* 面板：编辑器、预览台面边框内的衬底 */
+  --poim-fg: #211d17; /* 墨：正文与主文字 */
+  --poim-muted: #6f685d; /* 次级文字：标签、说明 */
+  --poim-faint: #a49c8e; /* 提示/禁用：placeholder、即将支持 */
+
+  /* 发丝线 */
+  --poim-line: #e2dccf;
+  --poim-line-strong: #cfc7b6;
+
+  /* 封蜡：唯一交互强调色（focus、激活 tab、主按钮 hover、选中态） */
+  --poim-accent: #8a5d12;
+  --poim-accent-soft: rgb(138 93 18 / 0.14);
+
+  /* 失败态 */
+  --poim-danger: #a1362b;
+
+  /* 字体与形状 */
+  --poim-serif: 'EB Garamond Variable', 'EB Garamond', ui-serif, serif;
+  --poim-sans: 'Instrument Sans Variable', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+  --poim-mono: 'LXGW Bright Code TC', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --poim-radius: 2px;
+  --poim-tick: 200ms;
+}
+
+:root.dark {
+  color-scheme: dark;
+
+  --poim-bg: #14110d;
+  --poim-surface: #1c1813;
+  --poim-fg: #eae4d8;
+  --poim-muted: #a89f8f;
+  --poim-faint: #6d665a;
+
+  --poim-line: #332d24;
+  --poim-line-strong: #4a4235;
+
+  --poim-accent: #d6a84f;
+  --poim-accent-soft: rgb(214 168 79 / 0.22);
+
+  --poim-danger: #dd8a7c;
+}

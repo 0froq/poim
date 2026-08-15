@@ -15,16 +15,27 @@ export default defineConfig({
       sm: '600px',
       md: '900px',
     },
+    colors: {
+      // 语义色 → 壳 token（浅深在 :root 翻转，组件不用写 dark: 变体）
+      'paper': 'var(--poim-bg)',
+      'surface': 'var(--poim-surface)',
+      'ink': 'var(--poim-fg)',
+      'muted': 'var(--poim-muted)',
+      'faint': 'var(--poim-faint)',
+      'line': 'var(--poim-line)',
+      'line-strong': 'var(--poim-line-strong)',
+      'accent': 'var(--poim-accent)',
+      'danger': 'var(--poim-danger)',
+    },
   },
   rules: [
-    ['font-sans', { 'font-family': 'Instrument Sans Variable, Instrument Sans, ui-sans-serif, system-ui, sans-serif' }],
-    ['font-serif', { 'font-family': 'EB Garamond Variable, EB Garamond, YshiPen-ShutiTC, ui-serif, serif' }],
-    ['font-mono', { 'font-family': 'LXGW Bright Code TC, ui-monospace, monospace' }],
-    ['font-stylish', { 'font-family': 'Caveat, cursive' }],
-    ['font-script', { 'font-family': 'Ephesis, cursive' }],
+    ['font-sans', { 'font-family': 'var(--poim-sans)' }],
+    ['font-serif', { 'font-family': 'var(--poim-serif)' }],
+    ['font-mono', { 'font-family': 'var(--poim-mono)' }],
   ],
   shortcuts: {
-    'page-content': 'mx-auto max-w-[960px] block px-10 min-w-0',
+    'page-content': 'mx-auto max-w-[1024px] block px-6 md:px-10 min-w-0',
+    'gen-layout': 'pb-24 grid gap-10 md:grid-cols-[minmax(0,25rem)_1fr]',
   },
   presets: [
     presetWind4(),

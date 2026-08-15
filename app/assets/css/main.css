@@ -1,12 +1,12 @@
-html {
-  font-family: 'Instrument Sans Variable', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
-  color-scheme: light dark;
-  background-color: #f5f5f4;
-  -webkit-font-smoothing: antialiased;
-}
+/* poim 应用壳 —— 纸与墨（Paper & Ink）
+ * token 见 tokens.css；设计决策见 docs/design/app-shell.md。
+ * 组件原语（poim-btn / poim-field / poim-tabs / …）只声明自己的属性，
+ * 间距与布局交给模板里的 UnoCSS utility，避免层叠冲突。 */
 
-html.dark {
-  background-color: #0c0a09;
+html {
+  font-family: var(--poim-sans);
+  background-color: var(--poim-bg);
+  -webkit-font-smoothing: antialiased;
 }
 
 html::-webkit-scrollbar {
@@ -14,70 +14,257 @@ html::-webkit-scrollbar {
   height: 1px;
 }
 
+html::-webkit-scrollbar-thumb {
+  background: var(--poim-line-strong);
+}
+
 ::selection {
-  background: rgb(120 113 108 / 0.24);
+  background: var(--poim-accent-soft);
   color: inherit;
 }
 
-.dark ::selection {
-  background: rgb(214 211 209 / 0.22);
+:focus-visible {
+  outline: 1.5px solid var(--poim-accent);
+  outline-offset: 2px;
 }
 
+/* ---- 壳骨架 ---- */
 .site-shell {
   isolation: isolate;
   min-height: 100vh;
   position: relative;
 }
 
-.site-shell::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-  pointer-events: none;
-  background: #f5f5f4;
+/* ---- 组件原语：按钮 ---- */
+.poim-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid var(--poim-line);
+  border-radius: var(--poim-radius);
+  padding: 0.42rem 0.85rem;
+  background: transparent;
+  color: var(--poim-muted);
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    border-color var(--poim-tick),
+    color var(--poim-tick),
+    background-color var(--poim-tick),
+    transform var(--poim-tick);
 }
 
-.dark .site-shell::before {
-  background: #0c0a09;
+.poim-btn:hover {
+  border-color: var(--poim-line-strong);
+  color: var(--poim-fg);
 }
 
-.site-shell::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background: #a3a3a3;
-  opacity: 0.18;
-  -webkit-mask-image: url('/bg-lined-paper.svg');
-  mask-image: url('/bg-lined-paper.svg');
-  mask-repeat: repeat;
-  mask-size: 280px 240px;
+.poim-btn:active {
+  transform: translateY(1px);
 }
 
-.dark .site-shell::after {
-  background: #57534e;
+.poim-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
-a.link-quiet {
-  border-bottom: 1px dashed #78716c;
-  font-style: italic;
-  font-family: 'EB Garamond Variable', 'EB Garamond', ui-serif, serif;
+/* 墨块：主操作（盖印）。hover 变封蜡色 */
+.poim-btn--ink {
+  background: var(--poim-fg);
+  border-color: var(--poim-fg);
+  color: var(--poim-bg);
+}
+
+.poim-btn--ink:hover {
+  background: var(--poim-accent);
+  border-color: var(--poim-accent);
+  color: var(--poim-bg);
+}
+
+/* 幽灵：次级文字操作 */
+.poim-btn--ghost {
+  border-color: transparent;
+  padding-left: 0.2rem;
+  padding-right: 0.2rem;
+}
+
+.poim-btn--ghost:hover {
+  border-color: transparent;
+  color: var(--poim-accent);
+}
+
+/* 选中态（预设选择等） */
+.poim-btn--active {
+  border-color: var(--poim-accent);
+  color: var(--poim-accent);
+}
+
+/* ---- 组件原语：字段 ---- */
+.poim-label {
+  display: block;
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--poim-muted);
+}
+
+.poim-field {
+  display: block;
+  width: 100%;
+  margin-top: 0.45rem;
+  padding: 0.45rem 0;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--poim-line);
+  border-radius: 0;
+  color: var(--poim-fg);
+  font-size: 0.9375rem;
+  outline: none;
+  transition: border-color var(--poim-tick);
+}
+
+.poim-field::placeholder {
+  color: var(--poim-faint);
+}
+
+.poim-field:focus {
+  border-bottom-color: var(--poim-accent);
+}
+
+.poim-field:disabled {
+  color: var(--poim-faint);
+  cursor: not-allowed;
+}
+
+.poim-textarea:disabled {
+  color: var(--poim-faint);
+  cursor: not-allowed;
+}
+
+/* URL 输入：机器文本用等宽 */
+.poim-field--mono {
+  font-family: var(--poim-mono);
+  font-size: 0.875rem;
+}
+
+.poim-textarea {
+  display: block;
+  width: 100%;
+  margin-top: 0.45rem;
+  padding: 0.6rem 0.7rem;
+  background: transparent;
+  border: 1px solid var(--poim-line);
+  border-radius: var(--poim-radius);
+  color: var(--poim-fg);
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  outline: none;
+  resize: vertical;
+  transition: border-color var(--poim-tick);
+}
+
+.poim-textarea::placeholder {
+  color: var(--poim-faint);
+}
+
+.poim-textarea:focus {
+  border-color: var(--poim-accent);
+}
+
+/* ---- 组件原语：tab 栏（平台选择 / 编辑器 HTML·CSS） ---- */
+.poim-tabs {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--poim-line);
+}
+
+.poim-tab {
+  padding: 0.5rem 0.9rem 0.55rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--poim-muted);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition:
+    color var(--poim-tick),
+    border-color var(--poim-tick);
+}
+
+.poim-tab:hover {
+  color: var(--poim-fg);
+}
+
+.poim-tab--active {
+  color: var(--poim-fg);
+  border-bottom-color: var(--poim-accent);
+}
+
+.poim-tab:disabled,
+.poim-tab--disabled {
+  color: var(--poim-faint);
+  cursor: not-allowed;
+}
+
+.poim-tab:disabled:hover,
+.poim-tab--disabled:hover {
+  color: var(--poim-faint);
+}
+
+/* ---- 组件原语：面板 / 小标签 ---- */
+.poim-panel {
+  background: var(--poim-surface);
+  border: 1px solid var(--poim-line);
+  border-radius: var(--poim-radius);
+}
+
+.poim-tag {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.3rem;
+  border: 1px solid var(--poim-line);
+  border-radius: var(--poim-radius);
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+  color: var(--poim-faint);
+  vertical-align: middle;
+}
+
+/* ---- wordmark：Garamond + 倾斜纸片 mark ---- */
+.poim-wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--poim-serif);
+  font-size: 1.5rem;
+  letter-spacing: 0.02em;
+  color: var(--poim-fg);
   text-decoration: none;
-  transition: border-color 0.2s;
 }
 
-a.link-quiet:hover {
-  border-bottom-style: solid;
-  border-bottom-color: #1c1917;
+.poim-mark {
+  display: inline-block;
+  width: 0.6em;
+  height: 0.6em;
+  border: 1.5px solid var(--poim-accent);
+  transform: rotate(8deg);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.18);
 }
 
-.dark a.link-quiet:hover {
-  border-bottom-color: #e7e5e4;
+/* ---- 预览台面：点阵坐标纸，卡片浮在其上 ---- */
+.stage-frame {
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background-image: radial-gradient(var(--poim-line) 1px, transparent 1px);
+  background-size: 22px 22px;
 }
 
-/* ---- 浅深切换：View Transition 圆形扩散（参考 0froq.github.io） ---- */
+/* ---- 浅深切换：View Transition 圆形扩散（240ms，合同要求 ~200ms 级） ---- */
 @property --vt-r {
   syntax: '<length>';
   inherits: true;
@@ -95,14 +282,14 @@ html[data-theme-vt] {
 }
 
 html[data-theme-vt='to-light']::view-transition-group(root) {
-  background-color: #0c0a09;
+  background-color: #14110d;
 }
 html[data-theme-vt='to-light']::view-transition-old(root) {
   z-index: 1;
 }
 html[data-theme-vt='to-light']::view-transition-new(root) {
   z-index: 9999;
-  animation: vt-infect-expand 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: vt-infect-expand 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
   -webkit-mask-image: radial-gradient(
     circle at var(--vt-x) var(--vt-y),
     #000 0%,
@@ -120,11 +307,11 @@ html[data-theme-vt='to-light']::view-transition-new(root) {
 }
 
 html[data-theme-vt='to-dark']::view-transition-group(root) {
-  background-color: #f5f5f4;
+  background-color: #f3f1ec;
 }
 html[data-theme-vt='to-dark']::view-transition-old(root) {
   z-index: 9999;
-  animation: vt-infect-shrink 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: vt-infect-shrink 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
   -webkit-mask-image: radial-gradient(
     circle at var(--vt-x) var(--vt-y),
     #000 0%,
