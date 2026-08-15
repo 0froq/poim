@@ -1,3 +1,4 @@
+import { createError, defineEventHandler, getQuery, setHeader } from 'h3'
 import { isAllowedMediaUrl } from '../../shared/utils/media-url'
 
 export default defineEventHandler(async (event) => {
@@ -10,20 +11,30 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const res = await fetch(url, {
-    headers: { 'user-agent': 'poim/0.1' },
-  })
-  if (!res.ok) {
+  let upstream: Response
+  try {
+    upstream = await fetch(url, { headers: { 'user-agent': 'poim/0.1' } })
+  }
+  catch {
     throw createError({
       statusCode: 502,
       statusMessage: 'unavailable',
-      data: { error: 'unavailable' },
+      data: { error: 'unavailable', message: '媒体源不可用' },
+    })
+  }
+  if (!upstream.ok) {
+    throw createError({
+      statusCode: 502,
+      statusMessage: 'unavailable',
+      data: { error: 'unavailable', message: '媒体源不可用' },
     })
   }
 
-  const type = res.headers.get('content-type') ?? 'application/octet-stream'
+  const type = upstream.headers.get('content-type') ?? 'application/octet-stream'
   setHeader(event, 'content-type', type)
   setHeader(event, 'cache-control', 'public, max-age=86400')
   setHeader(event, 'access-control-allow-origin', '*')
-  return new Uint8Array(await res.arrayBuffer())
+
+  // 流式透传，不把大 MP4 整段读进 Worker 内存
+  return upstream.body ?? new Uint8Array()
 })

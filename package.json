@@ -21,6 +21,7 @@
     "@fontsource-variable/instrument-sans": "catalog:prod",
     "@vueuse/core": "catalog:prod",
     "@vueuse/nuxt": "catalog:prod",
+    "h3": "catalog:prod",
     "isomorphic-dompurify": "catalog:prod",
     "modern-screenshot": "catalog:prod",
     "nuxt": "catalog:prod",

@@ -1,3 +1,4 @@
+import { createError, defineEventHandler, getQuery } from 'h3'
 import { detectPlatform, parseXStatusUrl } from '../../shared/utils/parse-x-url'
 import { resolveXTweet } from '../utils/fetch-x'
 
@@ -19,7 +20,7 @@ export default defineEventHandler(async (event) => {
       data: {
         error: 'unsupported',
         platform,
-        message: '即将支持，v1 只处理 X',
+        message: '该平台 v1 暂不支持，目前只处理 X',
       },
     })
   }
@@ -36,8 +37,8 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // 失败时 resolveXTweet 抛 404/502，这里只在真正拉取成功后才打 fetchedAt
   const post = await resolveXTweet(parsed.id)
-  post.source = 'url'
   post.fetchedAt = new Date().toISOString()
   post.canonicalUrl = post.canonicalUrl ?? `https://x.com/${parsed.handle ?? 'i'}/status/${parsed.id}`
   return post

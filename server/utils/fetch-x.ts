@@ -1,12 +1,19 @@
 import type { PoimMedia, PoimPost } from '../../shared/types/post'
+import { createError, H3Error } from 'h3'
 
-interface FxAuthor {
+/**
+ * X 帖子解析：FxEmbed 主、syndication 备（v1 不接官方 X API）。
+ * 纯服务端逻辑；失败一律抛 H3Error（404 not_found / 502 unavailable），
+ * 不把网络异常透传成 500。
+ */
+
+export interface FxAuthor {
   name?: string
   screen_name?: string
   avatar_url?: string
 }
 
-interface FxMediaItem {
+export interface FxMediaItem {
   type?: string
   url?: string
   thumbnail_url?: string
@@ -15,7 +22,7 @@ interface FxMediaItem {
   duration?: number
 }
 
-interface FxTweet {
+export interface FxTweet {
   id?: string
   url?: string
   text?: string
@@ -33,6 +40,48 @@ interface FxTweet {
     videos?: FxMediaItem[]
     gifs?: FxMediaItem[]
     all?: FxMediaItem[]
+  }
+}
+
+const FETCH_TIMEOUT_MS = 8_000
+
+function failure(statusCode: 404 | 502, error: 'not_found' | 'unavailable', message: string): H3Error {
+  return createError({
+    statusCode,
+    statusMessage: error,
+    data: { error, message },
+  })
+}
+
+function notFound(message = '帖子不存在、已删除或不可见'): H3Error {
+  return failure(404, 'not_found', message)
+}
+
+function unavailable(message = '第三方解析服务暂不可用'): H3Error {
+  return failure(502, 'unavailable', message)
+}
+
+function isFailure(error: unknown, code: 'not_found' | 'unavailable'): boolean {
+  return error instanceof H3Error && (error.data as { error?: string } | undefined)?.error === code
+}
+
+/** 拉 JSON；404 → not_found，非 2xx / 网络 / 超时 → unavailable。 */
+async function fetchJson(url: string): Promise<unknown> {
+  try {
+    const res = await fetch(url, {
+      headers: { 'accept': 'application/json', 'user-agent': 'poim/0.1' },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    })
+    if (res.status === 404)
+      throw notFound()
+    if (!res.ok)
+      throw unavailable()
+    return await res.json() as unknown
+  }
+  catch (error) {
+    if (error instanceof H3Error)
+      throw error
+    throw unavailable()
   }
 }
 
@@ -109,22 +158,16 @@ export function mapFxTweet(tweet: FxTweet, source: PoimPost['source']): PoimPost
       views: tweet.views ?? undefined,
     },
   }
+  // 契约：只保留一层引用（quote）
   if (tweet.quote)
-    post.quote = mapFxTweet(tweet.quote, source)
+    post.quote = mapFxTweet({ ...tweet.quote, quote: undefined }, source)
   return post
 }
 
 export async function fetchFxTweet(id: string): Promise<FxTweet> {
-  const res = await fetch(`https://api.fxtwitter.com/status/${id}`, {
-    headers: { 'accept': 'application/json', 'user-agent': 'poim/0.1' },
-  })
-  if (res.status === 404)
-    throw createError({ statusCode: 404, statusMessage: 'not_found', data: { error: 'not_found' } })
-  if (!res.ok)
-    throw createError({ statusCode: 502, statusMessage: 'unavailable', data: { error: 'unavailable' } })
-  const body = await res.json() as { code?: number, tweet?: FxTweet | null }
+  const body = await fetchJson(`https://api.fxtwitter.com/status/${id}`) as { code?: number, tweet?: FxTweet | null }
   if (!body.tweet)
-    throw createError({ statusCode: 404, statusMessage: 'not_found', data: { error: 'not_found' } })
+    throw notFound()
   return body.tweet
 }
 
@@ -132,38 +175,47 @@ function syndicationToken(id: string): string {
   return ((Number(id) / 1e15) * Math.PI).toString(36)
 }
 
-export async function fetchSyndicationTweet(id: string): Promise<FxTweet> {
-  const url = new URL('https://cdn.syndication.twimg.com/tweet-result')
-  url.searchParams.set('id', id)
-  url.searchParams.set('lang', 'en')
-  url.searchParams.set('token', syndicationToken(id))
-  const res = await fetch(url, {
-    headers: { 'accept': 'application/json', 'user-agent': 'Mozilla/5.0 poim/0.1' },
-  })
-  if (res.status === 404)
-    throw createError({ statusCode: 404, statusMessage: 'not_found', data: { error: 'not_found' } })
-  if (!res.ok)
-    throw createError({ statusCode: 502, statusMessage: 'unavailable', data: { error: 'unavailable' } })
-  const body = await res.json() as {
-    id_str?: string
-    text?: string
-    created_at?: string
-    favorite_count?: number
-    conversation_count?: number
-    user?: { name?: string, screen_name?: string, profile_image_url_https?: string }
-    photos?: { url?: string, width?: number, height?: number }[]
-    video?: { poster?: string, variants?: { type?: string, src?: string }[] }
-    quoted_tweet?: unknown
-  }
+interface SyndicationUser {
+  name?: string
+  screen_name?: string
+  profile_image_url_https?: string
+}
+
+interface SyndicationPhoto {
+  url?: string
+  width?: number
+  height?: number
+}
+
+interface SyndicationVideo {
+  poster?: string
+  variants?: { type?: string, src?: string }[]
+}
+
+interface SyndicationTweet {
+  id_str?: string
+  text?: string
+  created_at?: string
+  favorite_count?: number
+  conversation_count?: number
+  user?: SyndicationUser
+  photos?: SyndicationPhoto[]
+  video?: SyndicationVideo
+  quoted_tweet?: SyndicationTweet
+}
+
+function mapSyndicationTweet(body: SyndicationTweet): FxTweet {
+  const id = body.id_str ?? ''
+  const screenName = body.user?.screen_name
   const videoVariant = body.video?.variants?.find(v => v.type?.includes('mp4') && v.src)
   const tweet: FxTweet = {
-    id: body.id_str ?? id,
-    url: `https://x.com/${body.user?.screen_name ?? 'i'}/status/${body.id_str ?? id}`,
+    id,
+    url: `https://x.com/${screenName ?? 'i'}/status/${id}`,
     text: body.text,
     created_at: body.created_at,
     author: {
       name: body.user?.name,
-      screen_name: body.user?.screen_name,
+      screen_name: screenName,
       avatar_url: body.user?.profile_image_url_https?.replace('_normal', '_200x200'),
     },
     likes: body.favorite_count,
@@ -175,19 +227,39 @@ export async function fetchSyndicationTweet(id: string): Promise<FxTweet> {
         : [],
     },
   }
+  if (body.quoted_tweet)
+    tweet.quote = mapSyndicationTweet(body.quoted_tweet)
   return tweet
+}
+
+export async function fetchSyndicationTweet(id: string): Promise<FxTweet> {
+  const url = new URL('https://cdn.syndication.twimg.com/tweet-result')
+  url.searchParams.set('id', id)
+  url.searchParams.set('lang', 'en')
+  url.searchParams.set('token', syndicationToken(id))
+  const body = await fetchJson(url.toString()) as SyndicationTweet | null
+  // 200 但无 id_str（errors 载荷）→ 视为不可见（私密 / 年龄限制等）
+  if (!body?.id_str)
+    throw notFound()
+  return mapSyndicationTweet(body)
 }
 
 export async function resolveXTweet(id: string): Promise<PoimPost> {
   try {
-    const tweet = await fetchFxTweet(id)
-    return mapFxTweet(tweet, 'url')
+    return mapFxTweet(await fetchFxTweet(id), 'url')
   }
   catch (error) {
-    const status = (error as { statusCode?: number }).statusCode
-    if (status === 404)
+    // FxEmbed 明确 404（删除/私密）是权威结论，不再回落 syndication
+    if (isFailure(error, 'not_found'))
       throw error
-    const tweet = await fetchSyndicationTweet(id)
-    return mapFxTweet(tweet, 'url')
+    try {
+      return mapFxTweet(await fetchSyndicationTweet(id), 'url')
+    }
+    catch (fallbackError) {
+      if (isFailure(fallbackError, 'not_found'))
+        throw fallbackError
+      // 两个第三方都不可用 → 明确失败态，不冒充已拉取
+      throw unavailable()
+    }
   }
 }

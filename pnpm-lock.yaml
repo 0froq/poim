@@ -107,6 +107,9 @@ catalogs:
     '@vueuse/nuxt':
       specifier: ^14.4.0
       version: 14.4.0
+    h3:
+      specifier: ^1.15.11
+      version: 1.15.11
     isomorphic-dompurify:
       specifier: ^3.22.0
       version: 3.22.0
@@ -142,6 +145,9 @@ importers:
       '@vueuse/nuxt':
         specifier: catalog:prod
         version: 14.4.0(5380a435aa031a59938f17255a175b02)
+      h3:
+        specifier: catalog:prod
+        version: 1.15.11
       isomorphic-dompurify:
         specifier: catalog:prod
         version: 3.22.0
