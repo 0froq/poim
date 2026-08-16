@@ -1,7 +1,8 @@
-/* 普通预设（可编辑源 · 构建链直接追踪）
+/* default 预设（唯一基础模板 · 可编辑源 · 构建链直接追踪）
    纸色、衬线标题、虚线规则、灰阶 + 双阴影（1px 接触阴影 + 大半径软影）。
    卡片几何必须平整：v1 合同不允许对卡片本体 rotate / transform: rotate(...) 或等价倾斜
-   （2026-08-16 收紧，见 docs/design/presets.md §3）。 */
+   （2026-08-16 收紧，见 docs/design/presets.md §3）。
+   原 `plain` / 「普通」已迁移至此（PROJECT.md §3）。 */
 
 .poim-card {
   box-shadow:

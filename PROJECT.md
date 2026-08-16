@@ -4,6 +4,10 @@
 
 本文是 2026-08-15 grilling 后锁定的产品与架构合同。实现以本文为准；改合同先改本文。
 
+### Kanban 任务命名
+
+Hermes Kanban 的 `poim` board 是产品开发执行层，不属于研究项目。新建任务使用可读的内容标题（例如「导出画布边界验收」），**不使用 `RE-*` 前缀**，也不以 Multica 旧项目分类命名。历史 `RE-*` 卡仅作迁移审计记录，不追溯改名。
+
 参照站点：[0froq.github.io](https://0froq.github.io/)（同站 [froq.me](https://froq.me)，源码 [0froq/0froq.github.io](https://github.com/0froq/0froq.github.io)）。
 
 ---
@@ -13,8 +17,8 @@
 - **谁用**：任何人打开即可用。无登录、无用户配额。早期不推广，按公开产品来建。
 - **不是什么**：不是 AI 生成，不是官方 X widget 套壳，不是稳定热链 CDN。
 - **两种输入**
-  - **URL**：锁定手填区；卡片标记 `Fetched from X · {fetchedAt}`（不叫「认证」）。载荷签名校验留后期。
-  - **手填**：无上述标记。
+  - **URL**：锁定手填区；卡片始终标记 `Fetched from X`。抓取时间是可选附属信息：关闭显示时只隐藏时间戳，不隐藏来源标记。
+  - **手填**：无上述来源标记。
 - **两种输出**
   - **Web Component 快照**（主交付）：自包含，嵌入页不强制回拉本站。
   - **PNG**：与当时预览 DOM **同一套卡片** 截图，不是平台截图、也不是第二套排版引擎（Satori）。
@@ -50,15 +54,17 @@ UnoCSS 习惯与个人站一致：`presetWind4`、attributify **`un-` 前缀**�
 
 浅深是**独立维度**（`:host[data-theme=light|dark]` 上的 CSS 变量），每个预设都能切。
 
-**v1 三个预设**（同一 DOM 契约，换 HTML 模板 + CSS）：
+**v1 仅一个 preset：`default`**。
 
-| 预设 | 意向 |
-| --- | --- |
-| 普通 | 产品默认气质：纸色、衬线标题、虚线规则、灰阶、轻微倾角与软阴影。 |
-| 简洁 | 去纸纹与倾角，更少阴影，适合贴进长文。 |
-| 人文 | 衬线主导、引用感、更松行距。 |
+- `default` 是唯一的基础模板；原 `plain` / 「普通」迁移为 `default`，原 `minimal` / 「简洁」与 `humanist` / 「人文」彻底移除，不保留用户可选入口或兼容别名。
+- 未来新增模板必须采用**可验证的设计系统语义**命名，而非抽象气质词：名称应指向其明确的规范来源/语言（例如基于 Cupertino、Material、Fluent 的实现特征），并在设计文档说明配色、圆角、分割线、字体和状态层的依据；不得使用「简洁」「人文」等模棱两可名称。
 
-手绘预设（Rough.js）**v1 不做**，整体视觉不走手绘风。品牌向（Geist / Apple / Anthropic 神似）**二期**。对外名称不使用对方商标；不放对方 Logo。
+卡片 metadata 的显示原则：
+
+- 平台 X 标识及 likes / replies / reposts / views 均使用无障碍文本标签的图标，不以可见自然语言作为主 UI；
+- 发帖时间和抓取时间都用稳定的国际日期格式 `YYYY-MM-DD`（若显示时间可用 `YYYY-MM-DD HH:mm`），不出现中文年月日；
+- URL 卡的 `Fetched from X` 来源行始终可见；`showFetchedAt` 仅控制其时间戳子节点；
+- 预览/导出卡片 canvas 宽度固定为 **640px**。窄屏可让外层横向滚动或缩放，但不得把实际 card DOM 压缩得小于此宽度。
 
 叠层（已锁定）：
 
@@ -77,7 +83,9 @@ HTML 消毒（DOMPurify 白名单）：`div/span/p/a/img/video/picture/source/h1
 
 用户 CSS：禁 `@import`；禁外部 `url()` 字体/图；`url()` 仅 data 或同源代理。动画允许；截 PNG 取当前帧。
 
-编辑器：可视化 token（色、字体、圆角）+ 展开后 **lazy CodeMirror 6**（HTML / CSS 分 tab）。不上 Monaco 主包。
+设置面板只保留与实际输出有关的控制（例如 metadata 显示开关与 HTML/CSS 编辑入口）；移除无效的「样式、色、字体、圆角」可视化 token 配置区域。
+
+编辑器为 **lazy CodeMirror 6**（HTML / CSS 分 tab）。它必须在展开后可见、可输入、可切 tab；不上 Monaco 主包。
 
 导出 WC：Shadow DOM 内写入消毒 HTML + 冻住的预设 CSS + 用户 CSS + 当时 `data-theme` + 规范 JSON。
 

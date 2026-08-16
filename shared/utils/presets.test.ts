@@ -1,10 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import humanistRaw from '~/assets/css/card/humanist.css?raw'
-import minimalRaw from '~/assets/css/card/minimal.css?raw'
-import plainRaw from '~/assets/css/card/plain.css?raw'
+import defaultRaw from '~/assets/css/card/default.css?raw'
 import tokensRaw from '~/assets/css/card/tokens.css?raw'
-import { CARD_COLOR_DEFAULTS, RADIUS_DEFAULT } from './card-tokens'
-import { POIM_PRESETS } from './presets'
+import { getPreset, POIM_PRESETS } from './presets'
 import { getDomPurifyConfig } from './sanitize-html'
 
 const WHITELIST = new Set([
@@ -79,6 +76,16 @@ describe('预设与合同白名单', () => {
   })
 })
 
+describe('v1 仅一个 preset：default（RE-11）', () => {
+  it('注册表只有 default，无 plain/minimal/humanist 残留', () => {
+    expect(POIM_PRESETS.map(p => p.id)).toEqual(['default'])
+    expect(POIM_PRESETS[0]!.label).toBe('默认')
+    // 不保留任何别名 / 兼容入口
+    expect(POIM_PRESETS.some(p => ['plain', 'minimal', 'humanist'].includes(p.id))).toBe(false)
+    expect(() => getPreset('plain' as never)).toThrow()
+  })
+})
+
 describe('卡片平整化（v1 合同 2026-08-16）', () => {
   function stripComments(css: string): string {
     // 注释里允许提到「rotate 被禁止」这一规则本身；断言只针对真实声明
@@ -96,29 +103,23 @@ describe('卡片平整化（v1 合同 2026-08-16）', () => {
 
 describe('预设 CSS 外置 .css 文件（构建链追踪）', () => {
   it('pOIM_PRESETS.css 由真实 .css 源文件组合而成', () => {
-    const byId = Object.fromEntries(POIM_PRESETS.map(p => [p.id, p]))
-    expect(byId.plain!.css).toBe(`${tokensRaw}${plainRaw}`)
-    expect(byId.minimal!.css).toBe(`${tokensRaw}${minimalRaw}`)
-    expect(byId.humanist!.css).toBe(`${tokensRaw}${humanistRaw}`)
+    expect(POIM_PRESETS).toHaveLength(1)
+    expect(POIM_PRESETS[0]!.css).toBe(`${tokensRaw}${defaultRaw}`)
   })
 
-  it('tokens.css 与可视化 token 默认值（CARD_COLOR_DEFAULTS / RADIUS_DEFAULT）同步', () => {
-    // 深色选择器出现两次（.poim-stage[data-theme] 与 :host([data-theme])），
-    // 不能直接 split 解构——要取第一个出现点之后的整段作为深色块；引号单双都兼容（prettier 会归一）
-    const darkIdx = tokensRaw.search(/\.poim-stage\[data-theme=['"]dark['"]\]/)
-    expect(darkIdx).toBeGreaterThan(-1)
-    const lightBlock = tokensRaw.slice(0, darkIdx)
-    const darkBlock = tokensRaw.slice(darkIdx)
-    expect(lightBlock).toBeTruthy()
-    expect(darkBlock).toBeTruthy()
-    const extract = (block: string): Record<string, string> => {
-      const out: Record<string, string> = {}
-      for (const match of block.matchAll(/--poim-(bg|card|fg|muted|line)\s*:\s*([^;\s][^;]*);/g))
-        out[match[1]!] = match[2]!.trim()
-      return out
-    }
-    expect(extract(lightBlock!)).toEqual(CARD_COLOR_DEFAULTS.light)
-    expect(extract(darkBlock!)).toEqual(CARD_COLOR_DEFAULTS.dark)
-    expect(tokensRaw).toContain(`--poim-radius: ${RADIUS_DEFAULT};`)
+  it('tokens.css 声明全部 --poim-* token（唯一颜色契约来源）', () => {
+    for (const token of ['--poim-bg', '--poim-card', '--poim-fg', '--poim-muted', '--poim-line', '--poim-serif', '--poim-sans', '--poim-radius'])
+      expect(tokensRaw).toContain(token)
+    // 浅深独立维度：两套选择器都在
+    expect(tokensRaw).toContain('.poim-stage[data-theme=')
+    expect(tokensRaw).toContain(':host([data-theme=')
+  })
+
+  it('卡片 canvas 宽度固定 640px，不被外层压缩（RE-11）', () => {
+    const block = tokensRaw.match(/\.poim-card\s*\{[\s\S]*?\}/)?.[0]
+    expect(block).toBeTruthy()
+    expect(block).toMatch(/width:\s*640px/)
+    expect(block).toMatch(/min-width:\s*640px/)
+    expect(block).toMatch(/max-width:\s*none/)
   })
 })

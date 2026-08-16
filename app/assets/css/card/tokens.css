@@ -1,6 +1,5 @@
 /* 卡片层 token（可编辑源 · 构建链直接追踪）
-   与 shared/utils/card-tokens.ts 的 CARD_COLOR_DEFAULTS 同一份颜色契约：
-   改这里的颜色必须先改 card-tokens.ts 的默认值，presets.test.ts 的同步测试会拦漂移。
+   唯一颜色契约来源（visual-token 编辑器已移除，RE-11；不要重建第二份默认值）。
    浅深是独立维度：token 定义在 :host[data-theme] / .poim-stage[data-theme] 上，
    导出时冻死当时的 data-theme（PROJECT.md §2/§3）。 */
 
@@ -37,7 +36,11 @@
   border: 1px solid var(--poim-line);
   border-radius: var(--poim-radius);
   padding: 1.25rem 1.35rem 1rem;
-  max-width: 36rem;
+  /* 预览/导出 canvas 宽度固定 640px（PROJECT.md §3）：窄屏由外层容器滚动/缩放，
+     绝不允许把 card DOM 本身压缩到小于此宽度。 */
+  width: 640px;
+  min-width: 640px;
+  max-width: none;
   box-sizing: border-box;
 }
 
@@ -118,6 +121,53 @@
   margin-top: 1rem;
   padding-top: 0.7rem;
   border-top: 1px dashed var(--poim-line);
+}
+
+/* ---- 元信息（RE-11）：图标 + 无障碍标签，不以可见自然语言为主 UI ---- */
+.poim-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.1rem;
+  align-items: center;
+}
+
+.poim-metric {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  line-height: 1;
+}
+
+.poim-icon {
+  width: 1.05em;
+  height: 1.05em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
+}
+
+.poim-x-mark {
+  width: 0.95em;
+  height: 0.95em;
+  fill: currentColor;
+  stroke: none;
+  flex: none;
+}
+
+.poim-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.poim-provenance {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+  white-space: nowrap;
 }
 
 .poim-brand {

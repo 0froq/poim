@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PoimPost, PoimPresetId, PoimTheme } from '~~/shared/types/post'
+import type { PoimPost, PoimTheme } from '~~/shared/types/post'
 import { fillTemplate } from '~~/shared/utils/fill-template'
 import { toProxyMediaUrl } from '~~/shared/utils/media-url'
 import { sanitizeUserCss } from '~~/shared/utils/sanitize-css'
@@ -10,9 +10,7 @@ interface Props {
   html: string
   userCss: string
   presetCss: string
-  tokenCss?: string
   theme: PoimTheme
-  presetId: PoimPresetId
   showBrand: boolean
   showMetrics?: boolean
   showFetchedAt?: boolean
@@ -22,8 +20,7 @@ const props = defineProps<Props>()
 const stageRef = ref<HTMLElement | null>(null)
 
 function combinedCss(): string {
-  const tokenLayer = props.tokenCss?.trim() ? `${props.tokenCss}\n` : ''
-  return `${props.presetCss}\n${tokenLayer}${sanitizeUserCss(props.userCss)}`
+  return `${props.presetCss}\n${sanitizeUserCss(props.userCss)}`
 }
 
 function paint(): void {
@@ -63,7 +60,7 @@ function paint(): void {
 }
 
 watch(
-  () => [props.post, props.html, props.userCss, props.presetCss, props.tokenCss, props.theme, props.presetId, props.showBrand, props.showMetrics, props.showFetchedAt],
+  () => [props.post, props.html, props.userCss, props.presetCss, props.theme, props.showBrand, props.showMetrics, props.showFetchedAt],
   () => nextTick(paint),
   { deep: true },
 )

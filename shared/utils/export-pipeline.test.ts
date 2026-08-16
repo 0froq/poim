@@ -26,7 +26,7 @@ const SAMPLE: PoimPost = {
 }
 
 function buildEmbed(post: PoimPost, userCss = '', fill?: Partial<FillContext>): string {
-  const preset = getPreset('plain')
+  const preset = getPreset('default')
   const clean = sanitizeHtmlFragment(preset.html)
   const doc = new DOMParser().parseFromString(clean, 'text/html')
   const card = doc.body.firstElementChild as HTMLElement
@@ -56,28 +56,39 @@ describe('export pipeline e2e', () => {
     // quote 无内容 → hidden
     expect(html).toContain('data-poim="quote"')
     expect(html).toMatch(/data-poim="quote"[^>]*hidden/)
-    // metrics 填充
-    expect(html).toContain('喜欢 1.2K')
-    // badge（URL 来源）
-    expect(html).toContain('Fetched from X')
+    // metrics 填充为图标（RE-11）：无障碍名 + 数值，无可见中文标签
+    expect(html).toContain('aria-label="1.2K likes"')
+    expect(html).toContain('aria-label="7 replies"')
+    expect(html).toContain('aria-label="56 reposts"')
+    expect(html).toContain('aria-label="89K views"')
+    expect(html).not.toContain('喜欢')
+    expect(html).not.toContain('浏览')
+    // 来源行（URL 卡始终有）：Fetched from + X 图标 + 时间戳子节点
+    expect(html).toContain('Fetched from')
+    expect(html).toContain('aria-label="X"')
+    expect(html).toContain('class="poim-fetched-at"')
+    expect(html).toContain('2026-08-15')
+    // 发帖时间走稳定国际格式
+    expect(html).toContain('2026-08-14 08:30')
+    expect(html).not.toMatch(/[年月日]/)
     // 规范 JSON 载荷
     expect(html).toContain('type="application/json" data-poim="payload"')
     expect(html).toContain('"handle":"froq"')
   })
 
   it('导出样例无 </script> 逃逸：正文与 CSS 注入均被转义', () => {
-    // 正文注入 </script><script>：textContent 负责正文、\u003c 负责载荷；
-    // CSS 注入 </style>：</style → <\/style（style 是 raw text 元素，只有 </style 能提前闭合；
+    // 正文注入 </script><script>：textContent 负责正文、\\u003c 负责载荷；
+    // CSS 注入 </style>：</style → <\\/style（style 是 raw text 元素，只有 </style 能提前闭合；
     //   CSS 里的 <script> 是惰性文本，不构成逃逸，故 CSS 注入只测 </style 这一危险闭合符）
     const evilText = '正常文字 </script><script>alert(1)</script> 结尾'
     const evilCss = '.poim-card::after { content: "</style>"; }'
     const html = buildEmbed({ ...SAMPLE, text: evilText }, evilCss)
 
     // 结构不变量：全文恰有一个 <script 开标签（payload data block）与一个 </script> 收尾。
-    // 正文里的 script 文本要么被 textContent 转义成 &lt;，要么在载荷里被 \u003c 转义。
+    // 正文里的 script 文本要么被 textContent 转义成 &lt;，要么在载荷里被 \\u003c 转义。
     expect(html.match(/<script/g)).toHaveLength(1)
     expect(html.match(/<\/script>/gi)).toHaveLength(1)
-    // 危险闭合符 </style 只出现一次（style 块自身收尾），CSS 注入的被转义成 <\/style
+    // 危险闭合符 </style 只出现一次（style 块自身收尾），CSS 注入的被转义成 <\\/style
     expect(html.match(/<\/style>/gi)).toHaveLength(1)
     expect(html).not.toContain('<script>alert')
 
@@ -85,7 +96,7 @@ describe('export pipeline e2e', () => {
     const payloadBlock = html.match(/data-poim="payload">([\s\S]*?)<\/script>/)
     expect(payloadBlock).not.toBeNull()
     const payload = payloadBlock![1]!
-    // \u003c 是合法 JSON 转义，JSON.parse 直接还原出原文
+    // \\u003c 是合法 JSON 转义，JSON.parse 直接还原出原文
     const parsed = JSON.parse(payload) as { text: string }
     expect(parsed.text).toBe(evilText)
     expect(payload.match(/<\/script>/gi)).toBeNull()
@@ -93,26 +104,26 @@ describe('export pipeline e2e', () => {
 })
 
 describe('export pipeline：元信息开关透传到序列化快照（预览/导出同一 DOM）', () => {
-  it('uRL 快照默认带 metrics 与 Fetched from X', () => {
+  it('uRL 快照默认带 metrics 图标与 Fetched from 来源行', () => {
     const html = buildEmbed(SAMPLE)
-    expect(html).toContain('喜欢 1.2K')
-    expect(html).toContain('Fetched from X')
+    expect(html).toContain('aria-label="1.2K likes"')
+    expect(html).toContain('Fetched from')
   })
 
-  it('showMetrics=false：快照不含任何指标文本', () => {
+  it('showMetrics=false：快照不含任何指标项', () => {
     const html = buildEmbed(SAMPLE, '', { showMetrics: false })
-    expect(html).not.toContain('喜欢 1.2K')
-    expect(html).not.toContain('浏览 89.0K')
+    expect(html).not.toContain('class="poim-metric"')
     expect(html).toContain('data-poim="metrics"') // 槽位节点仍在（填节点不删标签）
   })
 
-  it('showFetchedAt=false：URL 快照不含 Fetched 标记', () => {
+  it('showFetchedAt=false：URL 快照保留来源行，去掉时间戳子节点', () => {
     const html = buildEmbed(SAMPLE, '', { showFetchedAt: false })
-    expect(html).not.toContain('Fetched from X')
+    expect(html).toContain('Fetched from')
+    expect(html).not.toContain('poim-fetched-at')
     expect(html).toContain('data-poim="badge"')
   })
 
-  it('手填快照（manual，无 fetchedAt）开关开启也不出现 Fetched 标记', () => {
+  it('手填快照（manual，无 fetchedAt）开关开启也不出现来源标记', () => {
     const manual: PoimPost = {
       ...SAMPLE,
       source: 'manual',
@@ -121,6 +132,7 @@ describe('export pipeline：元信息开关透传到序列化快照（预览/导
       id: undefined,
     }
     const html = buildEmbed(manual, '', { showFetchedAt: true })
-    expect(html).not.toContain('Fetched from X')
+    expect(html).not.toContain('Fetched from')
+    expect(html).not.toContain('poim-fetched-at')
   })
 })

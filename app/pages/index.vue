@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { domToPng } from 'modern-screenshot'
 import { absolutizeProxyUrl, toProxyMediaUrl } from '~~/shared/utils/media-url'
-import { POIM_PRESETS } from '~~/shared/utils/presets'
 import { serializePoimEmbed } from '~~/shared/utils/serialize-embed'
 
 const gen = useGenerator()
@@ -210,17 +209,6 @@ const hasMotion = computed(() =>
           un-gap-2
         >
           <button
-            v-for="preset in POIM_PRESETS"
-            :key="preset.id"
-            type="button"
-            class="poim-btn"
-            :class="{ 'poim-btn--active': gen.presetId === preset.id }"
-            :aria-pressed="gen.presetId === preset.id"
-            @click="gen.presetId = preset.id"
-          >
-            {{ preset.label }}
-          </button>
-          <button
             type="button"
             class="poim-btn"
             @click="gen.theme = gen.theme === 'light' ? 'dark' : 'light'"
@@ -253,23 +241,6 @@ const hasMotion = computed(() =>
             {{ gen.showFetchedAt ? '隐藏抓取时间' : '显示抓取时间' }}
           </button>
         </div>
-      </div>
-
-      <!-- 样式：可视化 token（色 / 字体 / 圆角） -->
-      <div>
-        <button
-          type="button"
-          class="poim-btn poim-btn--ghost"
-          @click="gen.styleTokens = !gen.styleTokens"
-        >
-          {{ gen.styleTokens ? '收起样式' : '样式：色 / 字体 / 圆角' }}
-        </button>
-        <TokenEditor
-          v-if="gen.styleTokens"
-          v-model="gen.tokenOverrides"
-          :theme="gen.theme"
-          un-mt-3
-        />
       </div>
 
       <!-- 高级：HTML / CSS -->
@@ -340,9 +311,7 @@ const hasMotion = computed(() =>
               :html="gen.htmlLocked"
               :user-css="gen.userCss"
               :preset-css="gen.preset.css"
-              :token-css="gen.tokenCss"
               :theme="gen.theme"
-              :preset-id="gen.presetId"
               :show-brand="gen.showBrand"
               :show-metrics="gen.showMetrics"
               :show-fetched-at="gen.showFetchedAt"

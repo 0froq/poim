@@ -38,7 +38,7 @@ export interface PoimPost {
   quote?: PoimPost
 }
 
-export type PoimPresetId = 'plain' | 'minimal' | 'humanist'
+export type PoimPresetId = 'default'
 
 export type PoimTheme = 'light' | 'dark'
 

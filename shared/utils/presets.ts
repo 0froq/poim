@@ -1,7 +1,5 @@
 import type { PoimPresetId } from '../types/post'
-import humanistRaw from '~/assets/css/card/humanist.css?raw'
-import minimalRaw from '~/assets/css/card/minimal.css?raw'
-import plainRaw from '~/assets/css/card/plain.css?raw'
+import defaultRaw from '~/assets/css/card/default.css?raw'
 import tokensRaw from '~/assets/css/card/tokens.css?raw'
 
 export interface PoimPreset {
@@ -40,13 +38,16 @@ const BASE_HTML = `
 
 // 预设 CSS 的可编辑源是 app/assets/css/card/ 下的真实 .css 文件（构建链直接追踪：
 // 编辑即 LSP / 语法高亮 / Vite HMR）。WC 导出注入的是 ?raw 冻结文本，单 DOM 契约不变。
-// 叠层（PROJECT.md §3）：tokens.css（token 基础层）→ 预设额外层 → token 覆盖 → 用户 CSS。
+// 叠层（PROJECT.md §3）：tokens.css（token 基础层）→ 预设额外层 → 用户 CSS。
+// v1 仅一个 preset：default（原 plain 迁移；minimal / humanist 已彻底移除）。
 export const POIM_PRESETS: PoimPreset[] = [
-  { id: 'plain', label: '普通', html: BASE_HTML, css: `${tokensRaw}${plainRaw}` },
-  { id: 'minimal', label: '简洁', html: BASE_HTML, css: `${tokensRaw}${minimalRaw}` },
-  { id: 'humanist', label: '人文', html: BASE_HTML, css: `${tokensRaw}${humanistRaw}` },
+  { id: 'default', label: '默认', html: BASE_HTML, css: `${tokensRaw}${defaultRaw}` },
 ]
 
 export function getPreset(id: PoimPresetId): PoimPreset {
-  return POIM_PRESETS.find(p => p.id === id) ?? POIM_PRESETS[0]!
+  // 不设兼容别名 / 静默回退：未知 id 直接报错（v1 仅 default，PROJECT.md §3）
+  const preset = POIM_PRESETS.find(p => p.id === id)
+  if (!preset)
+    throw new Error(`unknown preset: ${id}`)
+  return preset
 }

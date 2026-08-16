@@ -1,6 +1,5 @@
-import type { PoimPresetId, PoimTheme } from '~~/shared/types/post'
+import type { PoimTheme } from '~~/shared/types/post'
 import { useDebounceFn } from '@vueuse/core'
-import { composeTokenCss, emptyTokenOverrides } from '~~/shared/utils/card-tokens'
 import { emptyPost } from '~~/shared/utils/empty-post'
 import { getPreset } from '~~/shared/utils/presets'
 import userCssSeed from '~/assets/css/card/user.css?raw'
@@ -10,24 +9,20 @@ export function useGenerator() {
   const url = shallowRef('')
   const source = shallowRef<'url' | 'manual'>('manual')
   const post = ref(emptyPost())
-  const presetId = shallowRef<PoimPresetId>('plain')
+  // v1 仅一个 preset：default（PROJECT.md §3），无选择 UI。
+  const preset = computed(() => getPreset('default'))
   const theme = shallowRef<PoimTheme>('light')
   const userHtml = shallowRef('')
   // 用户 CSS 初始值来自可编辑源文件（app/assets/css/card/user.css），浏览器编辑优先
   const userCss = shallowRef(userCssSeed)
   const showBrand = shallowRef(true)
-  // 元信息显示开关（默认与产品现状一致：有数据就显示）
+  // 元信息显示开关（默认开启 = 与产品现状一致；手填无 fetchedAt 时永远不制造标记）
   const showMetrics = shallowRef(true)
   const showFetchedAt = shallowRef(true)
   const resolving = shallowRef(false)
   const resolveError = shallowRef('')
   const advanced = shallowRef(false)
-  // 可视化 token（RE-9）：覆盖写入卡片层 CSS，夹在预设与用户 CSS 之间
-  const tokenOverrides = reactive(emptyTokenOverrides())
-  const styleTokens = shallowRef(false)
-  const tokenCss = computed(() => composeTokenCss(tokenOverrides))
 
-  const preset = computed(() => getPreset(presetId.value))
   const htmlLocked = computed(() => userHtml.value.trim() || preset.value.html)
   const formLocked = computed(() => source.value === 'url')
 
@@ -79,11 +74,6 @@ export function useGenerator() {
     void resolveDebounced()
   })
 
-  watch(presetId, (id) => {
-    if (!userHtml.value.trim())
-      userHtml.value = getPreset(id).html
-  })
-
   onMounted(() => {
     userHtml.value = preset.value.html
   })
@@ -93,7 +83,7 @@ export function useGenerator() {
     url,
     source,
     post,
-    presetId,
+    preset,
     theme,
     userHtml,
     userCss,
@@ -103,10 +93,6 @@ export function useGenerator() {
     resolving,
     resolveError,
     advanced,
-    tokenOverrides,
-    styleTokens,
-    tokenCss,
-    preset,
     htmlLocked,
     formLocked,
     placeholderPlatforms,

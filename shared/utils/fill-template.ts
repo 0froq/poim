@@ -1,11 +1,13 @@
 import type { PoimMedia, PoimPost } from '../types/post'
+import { formatIsoDate, formatIsoDateTime } from './format-date'
 import { formatHandle } from './parse-x-url'
 import { queryPoimSlot, queryPoimSlots } from './slots'
 
 export interface FillContext {
   mediaSrc: (url: string) => string
   brandHref?: string
-  // 元信息显示开关（默认开启 = 与产品现状一致；手填无 fetchedAt 时永远不制造标记）
+  // 元信息显示开关（默认开启）。showFetchedAt 只控制抓取时间戳子节点，
+  // 不隐藏 URL 来源行的「Fetched from X」（PROJECT.md §3）。
   showMetrics?: boolean
   showFetchedAt?: boolean
 }
@@ -24,16 +26,10 @@ function isInsideQuote(el: Element, quoteRoot: Element | null): boolean {
   return quoteRoot.contains(el) && el !== quoteRoot
 }
 
-function formatTime(iso?: string): string {
-  if (!iso)
-    return ''
-  const date = new Date(iso)
-  if (Number.isNaN(date.getTime()))
-    return iso
-  return new Intl.DateTimeFormat('zh-CN', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(date)
+// 稳定国际日期格式（PROJECT.md §3）：YYYY-MM-DD，必要时 YYYY-MM-DD HH:mm。
+// 卡片 metadata 路径不输出任何中文年月日。
+function formatPostTime(iso?: string): string {
+  return formatIsoDateTime(iso)
 }
 
 function formatCount(n?: number): string {
@@ -44,6 +40,59 @@ function formatCount(n?: number): string {
   if (n >= 1_000)
     return `${(n / 1_000).toFixed(1).replace(/\.0$/, '')}K`
   return String(n)
+}
+
+const SVG_NS = 'http://www.w3.org/2000/svg'
+
+// 系统生成的图标（fillTemplate 注入槽位 DOM；在消毒之后执行，不经过用户 HTML 白名单）。
+// 图标全部 aria-hidden + 外层带无障碍文本标签（role="img" + aria-label）。
+function iconSvg(pathMarkup: string, viewBox = '0 0 24 24'): SVGSVGElement {
+  const svg = document.createElementNS(SVG_NS, 'svg')
+  svg.setAttribute('viewBox', viewBox)
+  svg.setAttribute('aria-hidden', 'true')
+  svg.setAttribute('focusable', 'false')
+  svg.innerHTML = pathMarkup
+  return svg
+}
+
+// 线框图标（stroke 由 tokens.css 的 .poim-icon 提供：fill:none / stroke:currentColor）
+const ICON_PATHS = {
+  replies: '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
+  reposts: '<polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>',
+  likes: '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
+  views: '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
+} as const
+
+// X 平台标识（fill 图标，stroke 由 .poim-x-mark 关掉）
+const X_LOGO_PATH = '<path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>'
+
+// 指标项：图标 + 数值，可见主 UI 无自然语言；无障碍名 = "{count} {metric}"。
+function metricEl(metric: string, count: number, pathMarkup: string): HTMLElement {
+  const wrap = document.createElement('span')
+  wrap.className = 'poim-metric'
+  wrap.setAttribute('role', 'img')
+  wrap.setAttribute('aria-label', `${formatCount(count)} ${metric}`)
+  wrap.append(iconSvg(pathMarkup))
+  const num = document.createElement('span')
+  num.className = 'poim-metric-count'
+  num.textContent = formatCount(count)
+  wrap.append(num)
+  return wrap
+}
+
+// URL 来源行：`Fetched from [X 图标]`。showFetchedAt 只控制时间戳子节点。
+function provenanceEl(): HTMLElement {
+  const span = document.createElement('span')
+  span.className = 'poim-provenance'
+  const prefix = document.createElement('span')
+  prefix.textContent = 'Fetched from '
+  const mark = document.createElement('span')
+  mark.className = 'poim-platform'
+  mark.setAttribute('role', 'img')
+  mark.setAttribute('aria-label', 'X')
+  mark.append(iconSvg(X_LOGO_PATH))
+  span.append(prefix, mark)
+  return span
 }
 
 function renderMedia(container: HTMLElement, media: PoimMedia[], mediaSrc: (url: string) => string): void {
@@ -103,8 +152,7 @@ function fillAuthorAndText(scope: ParentNode, post: PoimPost, quoteRoot: HTMLEle
   for (const el of queryPoimSlots(scope, 'time')) {
     if (isInsideQuote(el, quoteRoot))
       continue
-    const label = formatTime(post.createdAt)
-    el.textContent = label
+    el.textContent = formatPostTime(post.createdAt)
     if (el instanceof HTMLTimeElement && post.createdAt)
       el.dateTime = post.createdAt
   }
@@ -130,28 +178,48 @@ export function fillTemplate(root: HTMLElement, post: PoimPost, ctx: FillContext
 
   const metrics = queryPoimSlot(root, 'metrics')
   if (metrics) {
-    const parts = [
-      post.metrics?.replies != null ? `回复 ${formatCount(post.metrics.replies)}` : '',
-      post.metrics?.retweets != null ? `转帖 ${formatCount(post.metrics.retweets)}` : '',
-      post.metrics?.likes != null ? `喜欢 ${formatCount(post.metrics.likes)}` : '',
-      post.metrics?.views != null ? `浏览 ${formatCount(post.metrics.views)}` : '',
-    ].filter(Boolean)
-    if (ctx.showMetrics === false || !parts.length)
+    if (ctx.showMetrics === false) {
       hide(metrics)
-    else
-      metrics.textContent = parts.join(' · ')
+    }
+    else {
+      const m = post.metrics
+      const parts: HTMLElement[] = []
+      if (m?.replies != null)
+        parts.push(metricEl('replies', m.replies, ICON_PATHS.replies))
+      if (m?.retweets != null)
+        parts.push(metricEl('reposts', m.retweets, ICON_PATHS.reposts))
+      if (m?.likes != null)
+        parts.push(metricEl('likes', m.likes, ICON_PATHS.likes))
+      if (m?.views != null)
+        parts.push(metricEl('views', m.views, ICON_PATHS.views))
+      if (parts.length) {
+        metrics.replaceChildren(...parts)
+        show(metrics)
+      }
+      else {
+        metrics.replaceChildren()
+        hide(metrics)
+      }
+    }
   }
 
   const badge = queryPoimSlot(root, 'badge')
   if (badge) {
-    // 只有 URL 来源且确有 fetchedAt 才显示抓取时间；手填或缺失时开关不制造空白/伪标记
-    const showBadge = ctx.showFetchedAt !== false && post.source === 'url' && Boolean(post.fetchedAt)
-    if (showBadge) {
-      badge.textContent = `Fetched from X · ${formatTime(post.fetchedAt)}`
+    badge.replaceChildren()
+    // URL 来源永远显示来源行（不依赖 fetchedAt / showFetchedAt）；手填不制造来源标记。
+    if (post.source === 'url') {
+      badge.append(provenanceEl())
+      // 时间戳是可选的附属子节点：showFetchedAt 只控制它，不控制来源行。
+      if (post.fetchedAt && ctx.showFetchedAt !== false) {
+        const time = document.createElement('time')
+        time.className = 'poim-fetched-at'
+        time.dateTime = post.fetchedAt
+        time.textContent = formatIsoDate(post.fetchedAt)
+        badge.append(time)
+      }
       show(badge)
     }
     else {
-      badge.textContent = ''
       hide(badge)
     }
   }
