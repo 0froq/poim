@@ -1,5 +1,6 @@
 import type { PoimPresetId, PoimTheme } from '~~/shared/types/post'
 import { useDebounceFn } from '@vueuse/core'
+import { composeTokenCss, emptyTokenOverrides } from '~~/shared/utils/card-tokens'
 import { emptyPost } from '~~/shared/utils/empty-post'
 import { getPreset } from '~~/shared/utils/presets'
 
@@ -16,6 +17,10 @@ export function useGenerator() {
   const resolving = shallowRef(false)
   const resolveError = shallowRef('')
   const advanced = shallowRef(false)
+  // 可视化 token（RE-9）：覆盖写入卡片层 CSS，夹在预设与用户 CSS 之间
+  const tokenOverrides = reactive(emptyTokenOverrides())
+  const styleTokens = shallowRef(false)
+  const tokenCss = computed(() => composeTokenCss(tokenOverrides))
 
   const preset = computed(() => getPreset(presetId.value))
   const htmlLocked = computed(() => userHtml.value.trim() || preset.value.html)
@@ -91,6 +96,9 @@ export function useGenerator() {
     resolving,
     resolveError,
     advanced,
+    tokenOverrides,
+    styleTokens,
+    tokenCss,
     preset,
     htmlLocked,
     formLocked,

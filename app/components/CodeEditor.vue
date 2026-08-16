@@ -12,39 +12,6 @@ const el = ref<HTMLElement | null>(null)
 const isDark = useDark()
 let view: EditorViewType | null = null
 
-// 壳 chrome：只声明编辑器自身的形状，边框由外层 poim-panel 提供
-const chromeTheme = EditorViewType.theme({
-  '&': {
-    fontSize: '13px',
-    minHeight: '160px',
-  },
-  '.cm-scroller': {
-    fontFamily: 'var(--poim-mono)',
-  },
-})
-
-// 浅色纸面主题：跟随壳 token，与深色 oneDark 交替
-const lightTheme = EditorViewType.theme({
-  '&': {
-    backgroundColor: 'var(--poim-surface)',
-    color: 'var(--poim-fg)',
-  },
-  '.cm-gutters': {
-    backgroundColor: 'transparent',
-    borderRight: '1px solid var(--poim-line)',
-    color: 'var(--poim-faint)',
-  },
-  '.cm-activeLine, .cm-activeLineGutter': {
-    backgroundColor: 'var(--poim-accent-soft)',
-  },
-  '.cm-selectionBackground': {
-    backgroundColor: 'color-mix(in srgb, var(--poim-accent) 26%, transparent)',
-  },
-  '.cm-cursor': {
-    borderLeftColor: 'var(--poim-accent)',
-  },
-}, { dark: false })
-
 async function initView(): Promise<void> {
   const host = el.value
   if (!host)
@@ -61,6 +28,38 @@ async function initView(): Promise<void> {
     ? (await import('@codemirror/lang-css')).css()
     : (await import('@codemirror/lang-html')).html()
   const { oneDark } = await import('@codemirror/theme-one-dark')
+
+  // 壳 chrome 与浅色纸面主题在 lazy 路径内构造（EditorView 是动态导入的值）
+  const chromeTheme = EditorView.theme({
+    '&': {
+      fontSize: '13px',
+      minHeight: '160px',
+    },
+    '.cm-scroller': {
+      fontFamily: 'var(--poim-mono)',
+    },
+  })
+
+  const lightTheme = EditorView.theme({
+    '&': {
+      backgroundColor: 'var(--poim-surface)',
+      color: 'var(--poim-fg)',
+    },
+    '.cm-gutters': {
+      backgroundColor: 'transparent',
+      borderRight: '1px solid var(--poim-line)',
+      color: 'var(--poim-faint)',
+    },
+    '.cm-activeLine, .cm-activeLineGutter': {
+      backgroundColor: 'var(--poim-accent-soft)',
+    },
+    '.cm-selectionBackground': {
+      backgroundColor: 'color-mix(in srgb, var(--poim-accent) 26%, transparent)',
+    },
+    '.cm-cursor': {
+      borderLeftColor: 'var(--poim-accent)',
+    },
+  }, { dark: false })
 
   const extensions: Extension[] = [
     history(),

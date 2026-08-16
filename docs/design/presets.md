@@ -12,15 +12,16 @@ poim 的产品直觉：**帖子是纸，卡片是纸片**。一个平台帖子�
 
 浅深是独立维度：token 定义在 `:host[data-theme]` / `.poim-stage[data-theme]`，导出时冻死当时的 `data-theme`。预设 CSS **必须**走 token，不写死颜色。
 
-| token          | 浅              | 深        | 语义                  |
-| -------------- | --------------- | --------- | --------------------- |
-| `--poim-bg`    | `#f5f5f4`       | `#0c0a09` | 舞台（页面/宿主底色） |
-| `--poim-card`  | `#fafaf9`       | `#1c1917` | 纸面                  |
-| `--poim-fg`    | `#1c1917`       | `#e7e5e4` | 正文                  |
-| `--poim-muted` | `#78716c`       | `#a8a29e` | handle / 时间 / 指标  |
-| `--poim-line`  | `#d6d3d1`       | `#44403c` | 规则线（虚线/实线）   |
-| `--poim-serif` | EB Garamond     | 同        | 标题与人文主体        |
-| `--poim-sans`  | Instrument Sans | 同        | 正文与界面            |
+| token           | 浅              | 深        | 语义                        |
+| --------------- | --------------- | --------- | --------------------------- |
+| `--poim-bg`     | `#f5f5f4`       | `#0c0a09` | 舞台（页面/宿主底色）       |
+| `--poim-card`   | `#fafaf9`       | `#1c1917` | 纸面                        |
+| `--poim-fg`     | `#1c1917`       | `#e7e5e4` | 正文                        |
+| `--poim-muted`  | `#78716c`       | `#a8a29e` | handle / 时间 / 指标        |
+| `--poim-line`   | `#d6d3d1`       | `#44403c` | 规则线（虚线/实线）         |
+| `--poim-serif`  | EB Garamond     | 同        | 标题与人文主体              |
+| `--poim-sans`   | Instrument Sans | 同        | 正文与界面                  |
+| `--poim-radius` | `0px`           | 同        | 圆角（卡片/头像/媒体/引用） |
 
 选 stone 暖灰的理由：纸感需要暖灰，而不是冷灰的「工具感」或带饱和度的「营销感」；浅深两套在同一条 stone 轴上移动，保证任何预设切主题都不跳色。
 
@@ -60,7 +61,8 @@ poim 的产品直觉：**帖子是纸，卡片是纸片**。一个平台帖子�
 
 1. 预设 HTML 模板
 2. 预设 CSS（全走 `--poim-*`，浅深才生效）
-3. **用户 CSS 永远叠在最上层**（不 fork 预设；换预设不清用户 CSS）
+3. **可视化 token 覆盖层**（RE-9：色/字体/圆角，`shared/utils/card-tokens.ts` 生成，夹在预设与用户 CSS 之间）
+4. **用户 CSS 永远叠在最上层**（不 fork 预设；换预设不清用户 CSS 与 token 覆盖）
 
 - **结构标签用 `div` 不用 `article/header/footer/section`**：合同 HTML 消毒白名单不含语义标签（见 `sanitize-html.ts` 与 `presets.test.ts`），用 div 保证消毒后结构不塌。语义由 class 承担。
 - 槽位：`data-poim="<slot>"` 首选，认同名 `id`；填入节点不删标签；`media`/`quote` 是空容器，无引用时 `hidden`。

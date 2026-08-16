@@ -10,6 +10,7 @@ interface Props {
   html: string
   userCss: string
   presetCss: string
+  tokenCss?: string
   theme: PoimTheme
   presetId: PoimPresetId
   showBrand: boolean
@@ -19,7 +20,8 @@ const props = defineProps<Props>()
 const stageRef = ref<HTMLElement | null>(null)
 
 function combinedCss(): string {
-  return `${props.presetCss}\n${sanitizeUserCss(props.userCss)}`
+  const tokenLayer = props.tokenCss?.trim() ? `${props.tokenCss}\n` : ''
+  return `${props.presetCss}\n${tokenLayer}${sanitizeUserCss(props.userCss)}`
 }
 
 function paint(): void {
@@ -57,7 +59,7 @@ function paint(): void {
 }
 
 watch(
-  () => [props.post, props.html, props.userCss, props.presetCss, props.theme, props.presetId, props.showBrand],
+  () => [props.post, props.html, props.userCss, props.presetCss, props.tokenCss, props.theme, props.presetId, props.showBrand],
   () => nextTick(paint),
   { deep: true },
 )

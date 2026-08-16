@@ -1,4 +1,5 @@
 import type { PoimPresetId } from '../types/post'
+import { CARD_COLOR_DEFAULTS, RADIUS_DEFAULT } from './card-tokens'
 
 export interface PoimPreset {
   id: PoimPresetId
@@ -37,23 +38,24 @@ const BASE_HTML = `
 const TOKEN_CSS = `
 :host, .poim-stage {
   display: block;
-  --poim-bg: #f5f5f4;
-  --poim-fg: #1c1917;
-  --poim-muted: #78716c;
-  --poim-line: #d6d3d1;
-  --poim-card: #fafaf9;
+  --poim-bg: ${CARD_COLOR_DEFAULTS.light.bg};
+  --poim-fg: ${CARD_COLOR_DEFAULTS.light.fg};
+  --poim-muted: ${CARD_COLOR_DEFAULTS.light.muted};
+  --poim-line: ${CARD_COLOR_DEFAULTS.light.line};
+  --poim-card: ${CARD_COLOR_DEFAULTS.light.card};
   --poim-serif: "EB Garamond Variable", "EB Garamond", ui-serif, serif;
   --poim-sans: "Instrument Sans Variable", "Instrument Sans", ui-sans-serif, sans-serif;
+  --poim-radius: ${RADIUS_DEFAULT};
   color-scheme: light;
   color: var(--poim-fg);
   font-family: var(--poim-sans);
 }
 .poim-stage[data-theme="dark"], :host([data-theme="dark"]) {
-  --poim-bg: #0c0a09;
-  --poim-fg: #e7e5e4;
-  --poim-muted: #a8a29e;
-  --poim-line: #44403c;
-  --poim-card: #1c1917;
+  --poim-bg: ${CARD_COLOR_DEFAULTS.dark.bg};
+  --poim-fg: ${CARD_COLOR_DEFAULTS.dark.fg};
+  --poim-muted: ${CARD_COLOR_DEFAULTS.dark.muted};
+  --poim-line: ${CARD_COLOR_DEFAULTS.dark.line};
+  --poim-card: ${CARD_COLOR_DEFAULTS.dark.card};
   color-scheme: dark;
 }
 .poim-card {
@@ -61,6 +63,7 @@ const TOKEN_CSS = `
   background: var(--poim-card);
   color: var(--poim-fg);
   border: 1px solid var(--poim-line);
+  border-radius: var(--poim-radius);
   padding: 1.25rem 1.35rem 1rem;
   max-width: 36rem;
   box-sizing: border-box;
@@ -75,6 +78,7 @@ const TOKEN_CSS = `
   height: 2.5rem;
   object-fit: cover;
   border: 1px solid var(--poim-line);
+  border-radius: var(--poim-radius);
   flex: none;
 }
 .poim-name { font-weight: 600; }
@@ -100,12 +104,14 @@ const TOKEN_CSS = `
   max-height: 22rem;
   object-fit: cover;
   border: 1px solid var(--poim-line);
+  border-radius: var(--poim-radius);
   display: block;
 }
 .poim-quote {
   margin-top: 0.9rem;
   padding: 0.7rem 0.85rem;
   border: 1px dashed var(--poim-line);
+  border-radius: var(--poim-radius);
 }
 .poim-quote .poim-handle { margin-left: 0.4rem; }
 .poim-footer {

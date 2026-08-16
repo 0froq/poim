@@ -150,6 +150,48 @@ html::-webkit-scrollbar-thumb {
   font-size: 0.875rem;
 }
 
+/* 可视化 token（RE-9）：色板与字体选择 */
+.poim-swatch {
+  width: 1.6rem;
+  height: 1.6rem;
+  flex: none;
+  padding: 0;
+  border: 1px solid var(--poim-line);
+  border-radius: var(--poim-radius);
+  background: transparent;
+  cursor: pointer;
+}
+
+.poim-swatch::-webkit-color-swatch-wrapper {
+  padding: 2px;
+}
+
+.poim-swatch::-webkit-color-swatch {
+  border: 0;
+  border-radius: calc(var(--poim-radius) - 1px);
+}
+
+.poim-swatch::-moz-color-swatch {
+  border: 0;
+  border-radius: calc(var(--poim-radius) - 1px);
+}
+
+.poim-select {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--poim-muted) 50%),
+    linear-gradient(135deg, var(--poim-muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 55%,
+    calc(100% - 9px) 55%;
+  background-size:
+    5px 5px,
+    5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 1.6rem;
+  cursor: pointer;
+}
+
 .poim-textarea {
   display: block;
   width: 100%;

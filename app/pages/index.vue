@@ -207,6 +207,23 @@ const hasMotion = computed(() =>
         </div>
       </div>
 
+      <!-- 样式：可视化 token（色 / 字体 / 圆角） -->
+      <div>
+        <button
+          type="button"
+          class="poim-btn poim-btn--ghost"
+          @click="gen.styleTokens = !gen.styleTokens"
+        >
+          {{ gen.styleTokens ? '收起样式' : '样式：色 / 字体 / 圆角' }}
+        </button>
+        <TokenEditor
+          v-if="gen.styleTokens"
+          v-model="gen.tokenOverrides"
+          :theme="gen.theme"
+          un-mt-3
+        />
+      </div>
+
       <!-- 高级：HTML / CSS -->
       <div>
         <button
@@ -275,6 +292,7 @@ const hasMotion = computed(() =>
               :html="gen.htmlLocked"
               :user-css="gen.userCss"
               :preset-css="gen.preset.css"
+              :token-css="gen.tokenCss"
               :theme="gen.theme"
               :preset-id="gen.presetId"
               :show-brand="gen.showBrand"
