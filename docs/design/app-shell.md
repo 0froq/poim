@@ -112,7 +112,7 @@ froQ 2026-08-15 指示：不强制继承 0froq.github.io 的样式。个人站�
 
 ### 4.6 预览台面与导出
 
-- `poim-panel` 内嵌 `stage-frame`：点阵坐标纸（`radial-gradient` 1px 点，22px 网格），卡片浮在其上——普通预设的倾角与软阴影在此有舞台。
+- `poim-panel` 内嵌 `stage-frame`：点阵坐标纸（`radial-gradient` 1px 点，22px 网格），卡片浮在其上——普通预设的软阴影在此有舞台（卡片本体平整，倾角已于 2026-08-16 收紧移除，见 presets.md §3）。
 - 面板注脚：「预览即导出 · PNG 为当前帧」。
 - 导出栏：**复制 Web Component = 墨块按钮**（hover 变封蜡色——盖印隐喻），下载 PNG = 发丝线按钮，下载原视频 = 幽灵文字按钮。主次分明：复制是主交付。
 

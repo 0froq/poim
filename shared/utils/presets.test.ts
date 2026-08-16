@@ -1,4 +1,9 @@
 import { describe, expect, it } from 'vitest'
+import humanistRaw from '~/assets/css/card/humanist.css?raw'
+import minimalRaw from '~/assets/css/card/minimal.css?raw'
+import plainRaw from '~/assets/css/card/plain.css?raw'
+import tokensRaw from '~/assets/css/card/tokens.css?raw'
+import { CARD_COLOR_DEFAULTS, RADIUS_DEFAULT } from './card-tokens'
 import { POIM_PRESETS } from './presets'
 import { getDomPurifyConfig } from './sanitize-html'
 
@@ -71,5 +76,49 @@ describe('预设与合同白名单', () => {
     const allowed = config.ALLOWED_TAGS as string[]
     for (const tag of ['article', 'header', 'footer', 'section', 'script', 'iframe', 'object', 'form'])
       expect(allowed.includes(tag), `${tag} 不应在白名单`).toBe(false)
+  })
+})
+
+describe('卡片平整化（v1 合同 2026-08-16）', () => {
+  function stripComments(css: string): string {
+    // 注释里允许提到「rotate 被禁止」这一规则本身；断言只针对真实声明
+    return css.replace(/\/\*[\s\S]*?\*\//g, '')
+  }
+
+  it('所有预设 CSS 无 rotate / transform，卡片几何平整', () => {
+    for (const preset of POIM_PRESETS) {
+      const css = stripComments(preset.css)
+      expect(css).not.toMatch(/rotate/i)
+      expect(css).not.toMatch(/transform\s*:/)
+    }
+  })
+})
+
+describe('预设 CSS 外置 .css 文件（构建链追踪）', () => {
+  it('pOIM_PRESETS.css 由真实 .css 源文件组合而成', () => {
+    const byId = Object.fromEntries(POIM_PRESETS.map(p => [p.id, p]))
+    expect(byId.plain!.css).toBe(`${tokensRaw}${plainRaw}`)
+    expect(byId.minimal!.css).toBe(`${tokensRaw}${minimalRaw}`)
+    expect(byId.humanist!.css).toBe(`${tokensRaw}${humanistRaw}`)
+  })
+
+  it('tokens.css 与可视化 token 默认值（CARD_COLOR_DEFAULTS / RADIUS_DEFAULT）同步', () => {
+    // 深色选择器出现两次（.poim-stage[data-theme] 与 :host([data-theme])），
+    // 不能直接 split 解构——要取第一个出现点之后的整段作为深色块；引号单双都兼容（prettier 会归一）
+    const darkIdx = tokensRaw.search(/\.poim-stage\[data-theme=['"]dark['"]\]/)
+    expect(darkIdx).toBeGreaterThan(-1)
+    const lightBlock = tokensRaw.slice(0, darkIdx)
+    const darkBlock = tokensRaw.slice(darkIdx)
+    expect(lightBlock).toBeTruthy()
+    expect(darkBlock).toBeTruthy()
+    const extract = (block: string): Record<string, string> => {
+      const out: Record<string, string> = {}
+      for (const match of block.matchAll(/--poim-(bg|card|fg|muted|line)\s*:\s*([^;\s][^;]*);/g))
+        out[match[1]!] = match[2]!.trim()
+      return out
+    }
+    expect(extract(lightBlock!)).toEqual(CARD_COLOR_DEFAULTS.light)
+    expect(extract(darkBlock!)).toEqual(CARD_COLOR_DEFAULTS.dark)
+    expect(tokensRaw).toContain(`--poim-radius: ${RADIUS_DEFAULT};`)
   })
 })

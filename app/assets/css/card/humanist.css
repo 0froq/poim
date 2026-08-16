@@ -1,0 +1,18 @@
+/* 人文预设（可编辑源 · 构建链直接追踪）
+   衬线主导、引用感、更松行距：全文 EB Garamond，字号 1.12em、行距 1.8，
+   名字斜体、引用块斜体。 */
+
+.poim-card {
+  font-family: var(--poim-serif);
+}
+.poim-text {
+  font-size: 1.12em;
+  line-height: 1.8;
+}
+.poim-name {
+  font-style: italic;
+  letter-spacing: 0.01em;
+}
+.poim-quote {
+  font-style: italic;
+}

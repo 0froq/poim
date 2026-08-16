@@ -1,4 +1,5 @@
 import type { PoimPost } from '../types/post'
+import type { FillContext } from './fill-template'
 import { describe, expect, it } from 'vitest'
 import { fillTemplate } from './fill-template'
 import { toProxyMediaUrl } from './media-url'
@@ -24,12 +25,12 @@ const SAMPLE: PoimPost = {
   metrics: { likes: 1234, retweets: 56, replies: 7, views: 89012 },
 }
 
-function buildEmbed(post: PoimPost, userCss = ''): string {
+function buildEmbed(post: PoimPost, userCss = '', fill?: Partial<FillContext>): string {
   const preset = getPreset('plain')
   const clean = sanitizeHtmlFragment(preset.html)
   const doc = new DOMParser().parseFromString(clean, 'text/html')
   const card = doc.body.firstElementChild as HTMLElement
-  fillTemplate(card, post, { mediaSrc: toProxyMediaUrl, brandHref: 'https://github.com/0froq/poim' })
+  fillTemplate(card, post, { mediaSrc: toProxyMediaUrl, brandHref: 'https://github.com/0froq/poim', ...fill })
   return serializePoimEmbed({
     innerHTML: card.outerHTML,
     css: `${preset.css}\n${sanitizeUserCss(userCss)}`,
@@ -88,5 +89,38 @@ describe('export pipeline e2e', () => {
     const parsed = JSON.parse(payload) as { text: string }
     expect(parsed.text).toBe(evilText)
     expect(payload.match(/<\/script>/gi)).toBeNull()
+  })
+})
+
+describe('export pipeline：元信息开关透传到序列化快照（预览/导出同一 DOM）', () => {
+  it('uRL 快照默认带 metrics 与 Fetched from X', () => {
+    const html = buildEmbed(SAMPLE)
+    expect(html).toContain('喜欢 1.2K')
+    expect(html).toContain('Fetched from X')
+  })
+
+  it('showMetrics=false：快照不含任何指标文本', () => {
+    const html = buildEmbed(SAMPLE, '', { showMetrics: false })
+    expect(html).not.toContain('喜欢 1.2K')
+    expect(html).not.toContain('浏览 89.0K')
+    expect(html).toContain('data-poim="metrics"') // 槽位节点仍在（填节点不删标签）
+  })
+
+  it('showFetchedAt=false：URL 快照不含 Fetched 标记', () => {
+    const html = buildEmbed(SAMPLE, '', { showFetchedAt: false })
+    expect(html).not.toContain('Fetched from X')
+    expect(html).toContain('data-poim="badge"')
+  })
+
+  it('手填快照（manual，无 fetchedAt）开关开启也不出现 Fetched 标记', () => {
+    const manual: PoimPost = {
+      ...SAMPLE,
+      source: 'manual',
+      fetchedAt: undefined,
+      canonicalUrl: undefined,
+      id: undefined,
+    }
+    const html = buildEmbed(manual, '', { showFetchedAt: true })
+    expect(html).not.toContain('Fetched from X')
   })
 })

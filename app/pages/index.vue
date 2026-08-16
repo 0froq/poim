@@ -234,6 +234,24 @@ const hasMotion = computed(() =>
           >
             {{ gen.showBrand ? '隐藏 poim' : '显示 poim' }}
           </button>
+          <button
+            type="button"
+            class="poim-btn"
+            :class="{ 'poim-btn--active': gen.showMetrics }"
+            :aria-pressed="gen.showMetrics"
+            @click="gen.showMetrics = !gen.showMetrics"
+          >
+            {{ gen.showMetrics ? '隐藏指标' : '显示指标' }}
+          </button>
+          <button
+            type="button"
+            class="poim-btn"
+            :class="{ 'poim-btn--active': gen.showFetchedAt }"
+            :aria-pressed="gen.showFetchedAt"
+            @click="gen.showFetchedAt = !gen.showFetchedAt"
+          >
+            {{ gen.showFetchedAt ? '隐藏抓取时间' : '显示抓取时间' }}
+          </button>
         </div>
       </div>
 
@@ -326,6 +344,8 @@ const hasMotion = computed(() =>
               :theme="gen.theme"
               :preset-id="gen.presetId"
               :show-brand="gen.showBrand"
+              :show-metrics="gen.showMetrics"
+              :show-fetched-at="gen.showFetchedAt"
             />
             <template #fallback>
               <p

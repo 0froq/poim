@@ -1,0 +1,14 @@
+/* 简洁预设（可编辑源 · 构建链直接追踪）
+   去纸纹：背景透明、无阴影、无倾角；嵌入长文时与正文同底色。
+   结构线只剩一条：footer 上边框改实线。 */
+
+.poim-card {
+  background: transparent;
+  box-shadow: none;
+  border-color: var(--poim-line);
+  padding: 0.2rem 0 0;
+}
+
+.poim-footer {
+  border-top-style: solid;
+}

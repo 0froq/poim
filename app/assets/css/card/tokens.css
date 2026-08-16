@@ -1,0 +1,129 @@
+/* 卡片层 token（可编辑源 · 构建链直接追踪）
+   与 shared/utils/card-tokens.ts 的 CARD_COLOR_DEFAULTS 同一份颜色契约：
+   改这里的颜色必须先改 card-tokens.ts 的默认值，presets.test.ts 的同步测试会拦漂移。
+   浅深是独立维度：token 定义在 :host[data-theme] / .poim-stage[data-theme] 上，
+   导出时冻死当时的 data-theme（PROJECT.md §2/§3）。 */
+
+:host,
+.poim-stage {
+  display: block;
+  --poim-bg: #f5f5f4;
+  --poim-fg: #1c1917;
+  --poim-muted: #78716c;
+  --poim-line: #d6d3d1;
+  --poim-card: #fafaf9;
+  --poim-serif: 'EB Garamond Variable', 'EB Garamond', ui-serif, serif;
+  --poim-sans: 'Instrument Sans Variable', 'Instrument Sans', ui-sans-serif, sans-serif;
+  --poim-radius: 0px;
+  color-scheme: light;
+  color: var(--poim-fg);
+  font-family: var(--poim-sans);
+}
+
+.poim-stage[data-theme='dark'],
+:host([data-theme='dark']) {
+  --poim-bg: #0c0a09;
+  --poim-fg: #e7e5e4;
+  --poim-muted: #a8a29e;
+  --poim-line: #44403c;
+  --poim-card: #1c1917;
+  color-scheme: dark;
+}
+
+.poim-card {
+  position: relative;
+  background: var(--poim-card);
+  color: var(--poim-fg);
+  border: 1px solid var(--poim-line);
+  border-radius: var(--poim-radius);
+  padding: 1.25rem 1.35rem 1rem;
+  max-width: 36rem;
+  box-sizing: border-box;
+}
+
+.poim-header {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.poim-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  object-fit: cover;
+  border: 1px solid var(--poim-line);
+  border-radius: var(--poim-radius);
+  flex: none;
+}
+
+.poim-name {
+  font-weight: 600;
+}
+.poim-handle,
+.poim-time,
+.poim-metrics,
+.poim-badge,
+.poim-brand {
+  color: var(--poim-muted);
+  font-size: 0.85em;
+}
+.poim-author {
+  flex: 1;
+  min-width: 0;
+}
+.poim-time {
+  margin-left: auto;
+}
+
+.poim-text {
+  margin: 0.9rem 0 0;
+  white-space: pre-wrap;
+  line-height: 1.65;
+}
+
+.poim-media {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.9rem;
+}
+.poim-media[data-count='2'],
+.poim-media[data-count='4'] {
+  grid-template-columns: 1fr 1fr;
+}
+.poim-image,
+.poim-video {
+  width: 100%;
+  max-height: 22rem;
+  object-fit: cover;
+  border: 1px solid var(--poim-line);
+  border-radius: var(--poim-radius);
+  display: block;
+}
+
+.poim-quote {
+  margin-top: 0.9rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px dashed var(--poim-line);
+  border-radius: var(--poim-radius);
+}
+.poim-quote .poim-handle {
+  margin-left: 0.4rem;
+}
+
+.poim-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  align-items: baseline;
+  margin-top: 1rem;
+  padding-top: 0.7rem;
+  border-top: 1px dashed var(--poim-line);
+}
+
+.poim-brand {
+  margin-left: auto;
+  text-decoration: none;
+  border-bottom: 1px dashed var(--poim-line);
+  font-style: italic;
+  font-family: var(--poim-serif);
+}

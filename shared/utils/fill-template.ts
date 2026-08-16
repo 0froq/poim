@@ -5,6 +5,9 @@ import { queryPoimSlot, queryPoimSlots } from './slots'
 export interface FillContext {
   mediaSrc: (url: string) => string
   brandHref?: string
+  // 元信息显示开关（默认开启 = 与产品现状一致；手填无 fetchedAt 时永远不制造标记）
+  showMetrics?: boolean
+  showFetchedAt?: boolean
 }
 
 function hide(el: HTMLElement): void {
@@ -133,7 +136,7 @@ export function fillTemplate(root: HTMLElement, post: PoimPost, ctx: FillContext
       post.metrics?.likes != null ? `喜欢 ${formatCount(post.metrics.likes)}` : '',
       post.metrics?.views != null ? `浏览 ${formatCount(post.metrics.views)}` : '',
     ].filter(Boolean)
-    if (!parts.length)
+    if (ctx.showMetrics === false || !parts.length)
       hide(metrics)
     else
       metrics.textContent = parts.join(' · ')
@@ -141,7 +144,9 @@ export function fillTemplate(root: HTMLElement, post: PoimPost, ctx: FillContext
 
   const badge = queryPoimSlot(root, 'badge')
   if (badge) {
-    if (post.source === 'url' && post.fetchedAt) {
+    // 只有 URL 来源且确有 fetchedAt 才显示抓取时间；手填或缺失时开关不制造空白/伪标记
+    const showBadge = ctx.showFetchedAt !== false && post.source === 'url' && Boolean(post.fetchedAt)
+    if (showBadge) {
       badge.textContent = `Fetched from X · ${formatTime(post.fetchedAt)}`
       show(badge)
     }

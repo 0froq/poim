@@ -14,6 +14,8 @@ interface Props {
   theme: PoimTheme
   presetId: PoimPresetId
   showBrand: boolean
+  showMetrics?: boolean
+  showFetchedAt?: boolean
 }
 
 const props = defineProps<Props>()
@@ -49,6 +51,8 @@ function paint(): void {
   fillTemplate(card, props.post, {
     mediaSrc: toProxyMediaUrl,
     brandHref: 'https://github.com/0froq/poim',
+    showMetrics: props.showMetrics,
+    showFetchedAt: props.showFetchedAt,
   })
 
   const brand = card.querySelector('[data-poim="brand"]')
@@ -59,7 +63,7 @@ function paint(): void {
 }
 
 watch(
-  () => [props.post, props.html, props.userCss, props.presetCss, props.tokenCss, props.theme, props.presetId, props.showBrand],
+  () => [props.post, props.html, props.userCss, props.presetCss, props.tokenCss, props.theme, props.presetId, props.showBrand, props.showMetrics, props.showFetchedAt],
   () => nextTick(paint),
   { deep: true },
 )

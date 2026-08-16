@@ -3,6 +3,7 @@ import { useDebounceFn } from '@vueuse/core'
 import { composeTokenCss, emptyTokenOverrides } from '~~/shared/utils/card-tokens'
 import { emptyPost } from '~~/shared/utils/empty-post'
 import { getPreset } from '~~/shared/utils/presets'
+import userCssSeed from '~/assets/css/card/user.css?raw'
 
 export function useGenerator() {
   const platform = shallowRef<'x' | 'youtube' | 'bilibili' | 'xiaohongshu'>('x')
@@ -12,8 +13,12 @@ export function useGenerator() {
   const presetId = shallowRef<PoimPresetId>('plain')
   const theme = shallowRef<PoimTheme>('light')
   const userHtml = shallowRef('')
-  const userCss = shallowRef('')
+  // 用户 CSS 初始值来自可编辑源文件（app/assets/css/card/user.css），浏览器编辑优先
+  const userCss = shallowRef(userCssSeed)
   const showBrand = shallowRef(true)
+  // 元信息显示开关（默认与产品现状一致：有数据就显示）
+  const showMetrics = shallowRef(true)
+  const showFetchedAt = shallowRef(true)
   const resolving = shallowRef(false)
   const resolveError = shallowRef('')
   const advanced = shallowRef(false)
@@ -93,6 +98,8 @@ export function useGenerator() {
     userHtml,
     userCss,
     showBrand,
+    showMetrics,
+    showFetchedAt,
     resolving,
     resolveError,
     advanced,
