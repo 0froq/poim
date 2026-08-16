@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { domToPng } from 'modern-screenshot'
+import { absolutizeProxyUrl, toProxyMediaUrl } from '~~/shared/utils/media-url'
 import { POIM_PRESETS } from '~~/shared/utils/presets'
 import { serializePoimEmbed } from '~~/shared/utils/serialize-embed'
 
@@ -12,13 +13,37 @@ const copied = shallowRef(false)
 const pngUrl = shallowRef('')
 const editorTab = shallowRef<'html' | 'css'>('css')
 
+// 快照必须可移植（合同 §5）：把预览里相对 /api/media?url= 补成绝对同源 URL，
+// 不污染预览 DOM（克隆后改写）。data:/http(s) 原样保留。
+function absolutizeMedia(root: HTMLElement): void {
+  for (const node of root.querySelectorAll<HTMLElement>('img, video, source')) {
+    for (const attr of ['src', 'poster'] as const) {
+      const value = node.getAttribute(attr)
+      if (value)
+        node.setAttribute(attr, absolutizeProxyUrl(value, window.location.origin))
+    }
+  }
+}
+
+function mediaFileName(raw: string): string {
+  try {
+    const base = new URL(raw).pathname.split('/').pop()
+    if (base?.endsWith('.mp4'))
+      return base
+  }
+  catch {}
+  return 'poim-media.mp4'
+}
+
 async function copyEmbed(): Promise<void> {
   const card = preview.value?.getInnerCard()
   const css = preview.value?.combinedCss()
   if (!card || !css)
     return
+  const clone = card.cloneNode(true) as HTMLElement
+  absolutizeMedia(clone)
   const html = serializePoimEmbed({
-    innerHTML: card.outerHTML,
+    innerHTML: clone.outerHTML,
     css,
     theme: gen.theme,
     post: gen.post,
@@ -45,7 +70,12 @@ function downloadMedia(): void {
   const media = gen.post.media.find(item => item.type === 'video' || item.type === 'gif')
   if (!media)
     return
-  window.open(media.url, '_blank', 'noopener')
+  // 原片原样下载（v1 不转码）：走同源代理，<a download> 触发保存
+  const href = absolutizeProxyUrl(toProxyMediaUrl(media.url), window.location.origin)
+  const a = document.createElement('a')
+  a.href = href
+  a.download = mediaFileName(media.url)
+  a.click()
 }
 
 const hasMotion = computed(() =>
