@@ -123,3 +123,24 @@ describe('预设 CSS 外置 .css 文件（构建链追踪）', () => {
     expect(block).toMatch(/max-width:\s*none/)
   })
 })
+
+describe('footer：metrics 与 badge 分两行（t_724aa8f3）', () => {
+  it('.poim-footer 可换行，且 .poim-metrics flex-basis 100% 独占一行，badge 不与其同宽', () => {
+    // footer 是可换行的 flex 容器：这允许 item 拆到多行
+    const footerBlock = tokensRaw.match(/\.poim-footer\s*\{[\s\S]*?\}/)?.[0]
+    expect(footerBlock).toBeTruthy()
+    expect(footerBlock).toMatch(/display:\s*flex/)
+    expect(footerBlock).toMatch(/flex-wrap:\s*wrap/)
+
+    // metrics 必须占据整行 → 独占一行，badge/brand 随之换到下一行
+    const metricsBlock = tokensRaw.match(/\.poim-metrics\s*\{[\s\S]*?\}/)?.[0]
+    expect(metricsBlock).toBeTruthy()
+    expect(metricsBlock).toMatch(/flex-basis:\s*100%/)
+
+    // badge 不得与 metrics 一样占满整行（若它也 full-width 会退化成每行一项，
+    // 但也须保证 metrics 与 badge 不在同一行——full-width 只加在 metrics 上）
+    const badgeBlock = tokensRaw.match(/\.poim-badge\s*\{[\s\S]*?\}/)?.[0]
+    expect(badgeBlock).toBeTruthy()
+    expect(badgeBlock).not.toMatch(/flex-basis:\s*100%/)
+  })
+})

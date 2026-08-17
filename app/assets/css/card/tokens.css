@@ -125,6 +125,9 @@
 
 /* ---- 元信息（RE-11）：图标 + 无障碍标签，不以可见自然语言为主 UI ---- */
 .poim-metrics {
+  /* flex-basis 100%：在 .poim-footer 的换行 flex 容器里独占一行，
+     badge/brand 随之换到下一行，metrics 不再与 badge 挤同一行（t_724aa8f3）。 */
+  flex-basis: 100%;
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem 1.1rem;
