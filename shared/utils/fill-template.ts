@@ -46,8 +46,9 @@ const SVG_NS = 'http://www.w3.org/2000/svg'
 
 // 系统生成的图标（fillTemplate 注入槽位 DOM；在消毒之后执行，不经过用户 HTML 白名单）。
 // 图标全部 aria-hidden + 外层带无障碍文本标签（role="img" + aria-label）。
-function iconSvg(pathMarkup: string, viewBox = '0 0 24 24'): SVGSVGElement {
+function iconSvg(pathMarkup: string, className: string, viewBox = '0 0 24 24'): SVGSVGElement {
   const svg = document.createElementNS(SVG_NS, 'svg')
+  svg.classList.add(className)
   svg.setAttribute('viewBox', viewBox)
   svg.setAttribute('aria-hidden', 'true')
   svg.setAttribute('focusable', 'false')
@@ -72,7 +73,7 @@ function metricEl(metric: string, count: number, pathMarkup: string): HTMLElemen
   wrap.className = 'poim-metric'
   wrap.setAttribute('role', 'img')
   wrap.setAttribute('aria-label', `${formatCount(count)} ${metric}`)
-  wrap.append(iconSvg(pathMarkup))
+  wrap.append(iconSvg(pathMarkup, 'poim-icon'))
   const num = document.createElement('span')
   num.className = 'poim-metric-count'
   num.textContent = formatCount(count)
@@ -90,7 +91,7 @@ function provenanceEl(): HTMLElement {
   mark.className = 'poim-platform'
   mark.setAttribute('role', 'img')
   mark.setAttribute('aria-label', 'X')
-  mark.append(iconSvg(X_LOGO_PATH))
+  mark.append(iconSvg(X_LOGO_PATH, 'poim-x-mark'))
   span.append(prefix, mark)
   return span
 }

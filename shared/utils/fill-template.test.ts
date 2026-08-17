@@ -86,6 +86,8 @@ describe('元信息显示开关（metrics / fetchedAt / 来源行）', () => {
     const items = Array.from(metrics.querySelectorAll('.poim-metric'))
     expect(items.map(el => el.getAttribute('aria-label'))).toEqual(['12 likes', '340 views'])
     expect(metrics.querySelectorAll('svg').length).toBeGreaterThan(0)
+    // 图标 factory 必须输出 tokens.css 的可见性 class；否则节点存在但无尺寸/stroke 契约。
+    expect(metrics.querySelectorAll('svg.poim-icon')).toHaveLength(2)
     expect(metrics.textContent).not.toContain('喜欢')
     expect(metrics.textContent).not.toContain('浏览')
   })
@@ -162,7 +164,7 @@ describe('卡片 metadata 日期与图标（RE-11）', () => {
     expect(mark).not.toBeNull()
     expect(mark!.getAttribute('role')).toBe('img')
     expect(mark!.getAttribute('aria-label')).toBe('X')
-    expect(mark!.querySelector('svg')).not.toBeNull()
+    expect(mark!.querySelector('svg.poim-x-mark')).not.toBeNull()
     // 来源行里没有裸文本 "X"（平台名只存在于无障碍标签）
     expect(badge.textContent?.trim()).toBe('Fetched from')
   })
