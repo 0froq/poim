@@ -138,7 +138,7 @@
   object-fit: cover;
 }
 
-/* 回复：同宽流。左侧从原帖头像落到当前回复。 */
+/* 回复：同宽流。线只走头像列（2.5rem 头像的中线），正文/媒体收到名字列。 */
 .poim-flow {
   position: relative;
   padding-bottom: 1rem;
@@ -147,11 +147,18 @@
 .poim-flow::after {
   content: '';
   position: absolute;
-  left: 1.2rem;
-  top: 2.65rem;
+  left: 1.25rem;
+  top: 2.5rem;
   bottom: 0;
   width: 1px;
   background: var(--poim-line);
+  pointer-events: none;
+}
+.poim-flow .poim-text,
+.poim-flow .poim-media,
+.poim-card:has(> .poim-flow:not([hidden])) > .poim-text,
+.poim-card:has(> .poim-flow:not([hidden])) > .poim-media {
+  margin-left: 3.25rem;
 }
 .poim-flow .poim-text,
 .poim-flow .poim-media {

@@ -153,6 +153,11 @@ describe('预设 CSS 外置 .css 文件（构建链追踪）', () => {
   it('引用不把 handle 写成行内附加边距，头栏沿用主帖结构', () => {
     expect(tokensRaw).not.toMatch(/\.poim-quote \.poim-handle\s*\{[^}]*margin-left/)
   })
+
+  it('回复连线走头像列，正文收到名字列，不和线重叠', () => {
+    expect(tokensRaw).toMatch(/\.poim-flow::after\s*\{[^}]*left:\s*1\.25rem/)
+    expect(tokensRaw).toMatch(/\.poim-flow \.poim-text[\s\S]*?margin-left:\s*3\.25rem/)
+  })
 })
 
 describe('footer：metrics 与 badge 分两行（t_724aa8f3）', () => {
