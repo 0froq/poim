@@ -14,6 +14,8 @@ export default defineConfig({
     breakpoints: {
       sm: '600px',
       md: '900px',
+      // 双栏须能放下 25rem 表单 + gap + 640px 卡片 + 台面 padding，否则预览会横向滚动。
+      lg: '1240px',
     },
     colors: {
       // 语义色 → 壳 token（浅深在 :root 翻转，组件不用写 dark: 变体）
@@ -34,8 +36,8 @@ export default defineConfig({
     ['font-mono', { 'font-family': 'var(--poim-mono)' }],
   ],
   shortcuts: {
-    'page-content': 'mx-auto max-w-[1024px] block px-6 md:px-10 min-w-0',
-    'gen-layout': 'pb-24 grid gap-10 md:grid-cols-[minmax(0,25rem)_1fr]',
+    'page-content': 'mx-auto max-w-[1280px] block px-6 md:px-10 min-w-0',
+    'gen-layout': 'pb-24 grid gap-10 lg:grid-cols-[minmax(0,25rem)_minmax(43rem,1fr)]',
   },
   presets: [
     presetWind4(),

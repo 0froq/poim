@@ -122,6 +122,19 @@ describe('预设 CSS 外置 .css 文件（构建链追踪）', () => {
     expect(block).toMatch(/min-width:\s*640px/)
     expect(block).toMatch(/max-width:\s*none/)
   })
+
+  it('单图按原比例完整显示，不被 max-height + cover 裁切', () => {
+    const mediaBlock = tokensRaw.match(/\.poim-image,\s*\n\.poim-video\s*\{[\s\S]*?\}/)?.[0]
+    expect(mediaBlock).toBeTruthy()
+    expect(mediaBlock).toMatch(/width:\s*100%/)
+    expect(mediaBlock).toMatch(/height:\s*auto/)
+    expect(mediaBlock).toMatch(/object-fit:\s*contain/)
+    expect(mediaBlock).not.toMatch(/max-height/)
+    expect(mediaBlock).not.toMatch(/object-fit:\s*cover/)
+
+    const gridCover = tokensRaw.match(/\.poim-media\[data-count='2'\] \.poim-image[\s\S]*?\}/)?.[0]
+    expect(gridCover).toMatch(/object-fit:\s*cover/)
+  })
 })
 
 describe('footer：metrics 与 badge 分两行（t_724aa8f3）', () => {

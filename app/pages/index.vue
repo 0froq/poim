@@ -298,8 +298,8 @@ const hasMotion = computed(() =>
     <!-- 右栏：预览台面 + 导出 -->
     <section
       un-min-w-0
-      un-md:sticky
-      un-md:top-6
+      un-lg:sticky
+      un-lg:top-6
       un-self-start
     >
       <div class="poim-panel">

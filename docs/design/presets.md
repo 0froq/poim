@@ -70,6 +70,7 @@ poim 的产品直觉：**帖子是纸，卡片是纸片**。一个平台帖子�
 
 - **卡片平整化**：v1 合同 2026-08-16 收紧——卡片本体零 rotate / transform，倾角移除（原 `-0.35°` 微倾）。阴影保留承担体量感；动势仍是静态样式，不引入动画。
 - **灰阶优先**：v1 预设不引入品牌色，把色彩留给用户 CSS 层。
-- **固定 640px**：预览台面窄屏横向滚动（`.stage-frame` overflow-x），PNG 截图尺寸与预览一致。
+- **固定 640px**：预览台面仅在窄于卡片时横向滚动（`.stage-frame` overflow-x），PNG 截图尺寸与预览一致。
+- **单图按原比例完整显示**：`.poim-image` / `.poim-video` 为 `width:100%; height:auto; object-fit:contain`，不设 `max-height` + `cover`（否则竖长截图会被砍高、内容被裁）。多图 2/4 宫格仍 `cover` 成格。
 - **手绘已移除**：froQ 2026-08-15 锁合同——手绘预设 v1 不做，整体视觉不走手绘风，Rough.js 不用于卡片（PROJECT.md 第 3 节）。
 - **未来新增模板**须用可验证的设计系统语义命名（Cupertino / Material / Fluent 等），不得用「简洁」「人文」等抽象气质词（PROJECT.md §3）。

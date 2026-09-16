@@ -272,10 +272,11 @@ html::-webkit-scrollbar-thumb {
 }
 
 /* ---- 预览台面：点阵坐标纸，卡片浮在其上 ----
-   卡片 DOM 固定 640px（PROJECT.md §3）：窄屏由台面横向滚动，绝不允许压缩卡片本身。 */
+   卡片 DOM 固定 640px（PROJECT.md §3）：仅在台面窄于卡片时横向滚动，
+   绝不压缩卡片本身。双栏布局须让出台面 ≥ 640px + 内边距（见 uno gen-layout）。 */
 .stage-frame {
   display: grid;
-  place-items: center;
+  place-items: start center;
   padding: 1.5rem;
   background-image: radial-gradient(var(--poim-line) 1px, transparent 1px);
   background-size: 22px 22px;
