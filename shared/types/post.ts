@@ -36,6 +36,10 @@ export interface PoimPost {
   media: PoimMedia[]
   metrics?: PoimMetrics
   quote?: PoimPost
+  /** 回复对象的 handle（不含 @）。卡片顶栏一行「回复 @handle」，不是第二套作者头。 */
+  replyToHandle?: string
+  /** 转发者。卡片顶栏一行「Name 转发了」，作者头栏仍是原帖作者。 */
+  repostedBy?: PoimAuthor
 }
 
 export type PoimPresetId = 'default'

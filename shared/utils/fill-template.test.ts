@@ -2,6 +2,7 @@ import type { FillContext } from './fill-template'
 import { describe, expect, it } from 'vitest'
 import { emptyPost } from './empty-post'
 import { fillTemplate } from './fill-template'
+import { getPreset } from './presets'
 import { serializePoimEmbed } from './serialize-embed'
 
 describe('fillTemplate', () => {
@@ -24,6 +25,71 @@ describe('fillTemplate', () => {
     fillTemplate(root, post, { mediaSrc: u => u })
     expect(root.querySelector('[data-poim="author-name"]')?.textContent).toBe('jack')
     expect((root.querySelector('[data-poim="quote"]') as HTMLElement).hidden).toBe(true)
+  })
+
+  it('引用帖与主帖共用头像 / 名字 / handle 头栏，互不串槽', () => {
+    document.body.innerHTML = getPreset('default').html
+    const root = document.querySelector('.poim-card') as HTMLElement
+    const post = emptyPost()
+    post.author = {
+      name: 'Main',
+      handle: 'main',
+      avatar: 'https://pbs.twimg.com/profile_images/main.jpg',
+    }
+    post.text = 'outer'
+    const quoted = emptyPost()
+    quoted.author = {
+      name: 'Quoted',
+      handle: 'quoted',
+      avatar: 'https://pbs.twimg.com/profile_images/quoted.jpg',
+    }
+    quoted.text = 'inner'
+    post.quote = quoted
+    fillTemplate(root, post, { mediaSrc: u => `/p?${u}` })
+
+    const header = root.querySelector(':scope > .poim-header')!
+    expect(header.querySelector('[data-poim="author-name"]')?.textContent).toBe('Main')
+    expect(header.querySelector('[data-poim="author-handle"]')?.textContent).toBe('@main')
+    expect((header.querySelector('[data-poim="author-avatar"]') as HTMLImageElement).src).toContain('main.jpg')
+
+    const quote = root.querySelector('[data-poim="quote"]') as HTMLElement
+    expect(quote.hidden).toBe(false)
+    const qHeader = quote.querySelector('.poim-header')!
+    expect(qHeader.querySelector('[data-poim="author-name"]')?.tagName).toBe('DIV')
+    expect(qHeader.querySelector('[data-poim="author-handle"]')?.tagName).toBe('DIV')
+    expect(qHeader.querySelector('[data-poim="author-name"]')?.textContent).toBe('Quoted')
+    expect(qHeader.querySelector('[data-poim="author-handle"]')?.textContent).toBe('@quoted')
+    expect((qHeader.querySelector('[data-poim="author-avatar"]') as HTMLImageElement).src).toContain('quoted.jpg')
+    expect(quote.querySelector('[data-poim="text"]')?.textContent).toBe('inner')
+  })
+
+  it('引用内媒体与主帖媒体互不覆盖，回复/转发写成上下文行', () => {
+    document.body.innerHTML = getPreset('default').html
+    const root = document.querySelector('.poim-card') as HTMLElement
+    const post = emptyPost()
+    post.author = { name: 'Main', handle: 'main', avatar: 'https://pbs.twimg.com/profile_images/main.jpg' }
+    post.text = 'outer'
+    post.media = [{ type: 'image', url: 'https://pbs.twimg.com/media/main.jpg' }]
+    post.replyToHandle = 'parent'
+    post.repostedBy = { name: 'Fwd', handle: 'fwd' }
+    const quoted = emptyPost()
+    quoted.author = { name: 'Quoted', handle: 'quoted', avatar: 'https://pbs.twimg.com/profile_images/quoted.jpg' }
+    quoted.text = 'inner'
+    quoted.media = [{ type: 'image', url: 'https://pbs.twimg.com/media/quoted.jpg' }]
+    post.quote = quoted
+    fillTemplate(root, post, { mediaSrc: u => u })
+
+    const mainMedia = root.querySelector(':scope > [data-poim="media"]') as HTMLElement
+    const quoteMedia = root.querySelector('[data-poim="quote"] [data-poim="media"]') as HTMLElement
+    expect(mainMedia.hidden).toBe(false)
+    expect(quoteMedia.hidden).toBe(false)
+    expect((mainMedia.querySelector('img') as HTMLImageElement).src).toContain('main.jpg')
+    expect((quoteMedia.querySelector('img') as HTMLImageElement).src).toContain('quoted.jpg')
+    expect(root.querySelector(':scope > .poim-repost')?.textContent).toBe('Fwd 转发了')
+    expect(root.querySelector(':scope > .poim-reply-to')?.textContent).toBe('回复 @parent')
+    const header = root.querySelector(':scope > .poim-header')
+    expect(root.querySelector(':scope > .poim-repost')?.nextElementSibling).toBe(header)
+    expect(header?.nextElementSibling?.classList.contains('poim-reply-to')).toBe(true)
   })
 })
 

@@ -77,7 +77,8 @@ UnoCSS 习惯与个人站一致：`presetWind4`、attributify **`un-` 前缀**�
 - 首选 `data-poim="<slot>"`；也认同名 `id`。
 - **填入节点，不删标签。**
 - 白名单：`author-name` `author-handle` `author-avatar` `time` `text` `media` `metrics` `quote` `badge` `brand`。
-- `media` / `quote` 是**空容器**：生成器填真实媒体；引用递归缩小或放入 `quote` 容器；无引用则隐藏该节点。
+- `media` / `quote` 是**空容器**：生成器填真实媒体；引用块内可再放一层 `media`（仍只一层引用，不递归引用的引用）；无引用则隐藏 quote。
+- 回复 / 转发不是第二套作者头栏：`replyToHandle` 在头栏下写「回复 @handle」；`repostedBy` 在头栏上写「Name 转发了」。引用作者必须与主帖同一套 `.poim-header` + `.poim-avatar` + 块级 name/handle。
 
 HTML 消毒（DOMPurify 白名单）：`div/span/p/a/img/video/picture/source/h1-h3/ul/ol/li/blockquote/figure/figcaption/time/strong/em/br` + `data-poim` / `class` / `style`。禁 `script`、事件属性、`iframe`、`object`、`form`。`a[href]` 仅 `http(s)`。
 

@@ -35,6 +35,8 @@ export interface FxTweet {
   replies?: number
   views?: number | null
   quote?: FxTweet
+  replying_to?: string | null
+  reposted_by?: FxAuthor | null
   media?: {
     photos?: FxMediaItem[]
     videos?: FxMediaItem[]
@@ -157,6 +159,15 @@ export function mapFxTweet(tweet: FxTweet, source: PoimPost['source']): PoimPost
       replies: tweet.replies,
       views: tweet.views ?? undefined,
     },
+  }
+  if (typeof tweet.replying_to === 'string' && tweet.replying_to.trim())
+    post.replyToHandle = tweet.replying_to.replace(/^@/, '')
+  if (tweet.reposted_by) {
+    post.repostedBy = {
+      name: tweet.reposted_by.name ?? '',
+      handle: tweet.reposted_by.screen_name ?? '',
+      avatar: tweet.reposted_by.avatar_url,
+    }
   }
   // 契约：只保留一层引用（quote）
   if (tweet.quote)

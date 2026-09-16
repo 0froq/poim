@@ -159,23 +159,60 @@ function fillAuthorAndText(scope: ParentNode, post: PoimPost, quoteRoot: HTMLEle
   }
 }
 
+function fillMedia(container: HTMLElement, media: PoimMedia[], mediaSrc: (url: string) => string): void {
+  if (!media.length) {
+    hide(container)
+    return
+  }
+  renderMedia(container, media.map(item => ({
+    ...item,
+    url: mediaSrc(item.url),
+    poster: item.poster ? mediaSrc(item.poster) : undefined,
+  })), url => url)
+  show(container)
+}
+
+function slotOutsideQuote(root: HTMLElement, name: 'media', quoteRoot: HTMLElement | null): HTMLElement | null {
+  return queryPoimSlots(root, name).find(el => !quoteRoot?.contains(el)) ?? null
+}
+
+function syncLead(card: HTMLElement, className: string, text: string | null, before: ChildNode | null): void {
+  let row = card.querySelector(`:scope > .${className}`) as HTMLElement | null
+  if (!text) {
+    row?.remove()
+    return
+  }
+  if (!row) {
+    row = document.createElement('div')
+    row.className = className
+    card.insertBefore(row, before)
+  }
+  row.textContent = text
+}
+
 export function fillTemplate(root: HTMLElement, post: PoimPost, ctx: FillContext): void {
   const quoteRoot = queryPoimSlot(root, 'quote')
   fillAuthorAndText(root, post, quoteRoot)
 
-  const media = queryPoimSlot(root, 'media')
-  if (media) {
-    if (!post.media.length) {
-      hide(media)
-    }
-    else {
-      renderMedia(media, post.media.map(item => ({
-        ...item,
-        url: ctx.mediaSrc(item.url),
-        poster: item.poster ? ctx.mediaSrc(item.poster) : undefined,
-      })), url => url)
-    }
-  }
+  const media = slotOutsideQuote(root, 'media', quoteRoot)
+  if (media)
+    fillMedia(media, post.media, ctx.mediaSrc)
+
+  const header = root.querySelector(':scope > .poim-header')
+  syncLead(
+    root,
+    'poim-repost',
+    post.repostedBy
+      ? `${post.repostedBy.name || formatHandle(post.repostedBy.handle)} 转发了`
+      : null,
+    header,
+  )
+  syncLead(
+    root,
+    'poim-reply-to',
+    post.replyToHandle ? `回复 ${formatHandle(post.replyToHandle)}` : null,
+    header ? header.nextSibling : null,
+  )
 
   const metrics = queryPoimSlot(root, 'metrics')
   if (metrics) {
@@ -239,6 +276,9 @@ export function fillTemplate(root: HTMLElement, post: PoimPost, ctx: FillContext
     else {
       show(quoteRoot)
       fillAuthorAndText(quoteRoot, post.quote, null)
+      const quotedMedia = queryPoimSlot(quoteRoot, 'media')
+      if (quotedMedia)
+        fillMedia(quotedMedia, post.quote.media, ctx.mediaSrc)
     }
   }
 

@@ -90,6 +90,20 @@ describe('mapFxTweet', () => {
     expect(post.quote?.id).toBe('2')
     expect(post.quote?.quote).toBeUndefined()
   })
+
+  it('maps reply handle and reposted_by without nested extra quotes', () => {
+    const post = mapFxTweet({
+      ...fxTweet,
+      replying_to: '@parent',
+      reposted_by: { name: 'Fwd', screen_name: 'fwd', avatar_url: 'https://pbs.twimg.com/profile_images/fwd.png' },
+    }, 'url')
+    expect(post.replyToHandle).toBe('parent')
+    expect(post.repostedBy).toEqual({
+      name: 'Fwd',
+      handle: 'fwd',
+      avatar: 'https://pbs.twimg.com/profile_images/fwd.png',
+    })
+  })
 })
 
 describe('resolveXTweet', () => {

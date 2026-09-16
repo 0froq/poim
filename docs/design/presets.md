@@ -64,6 +64,8 @@ poim 的产品直觉：**帖子是纸，卡片是纸片**。一个平台帖子�
 
 - **结构标签用 `div` 不用 `article/header/footer/section`**：合同 HTML 消毒白名单不含语义标签（见 `sanitize-html.ts` 与 `presets.test.ts`），用 div 保证消毒后结构不塌。语义由 class 承担。
 - 槽位：`data-poim="<slot>"` 首选，认同名 `id`；填入节点不删标签；`media`/`quote` 是空容器，无引用时 `hidden`。
+- **引用头栏与主帖同一套 DOM**：`.poim-header` + `.poim-avatar` + `.poim-author`（`.poim-name` / `.poim-handle` 为块级 `div`）。引用内可再填一层 `media`。不得把引用写成行内 `span` 名字+handle、也不得省略头像槽。
+- 回复/转发只用上下文行（`.poim-reply-to` / `.poim-repost`），不另做一套缩小头像+名字。
 - 消毒只放行 `data-poim`，其余 `data-*` 剥掉（hook 实现，见 `sanitize-html.ts` 注释）。
 
 ## 5. 已知取舍

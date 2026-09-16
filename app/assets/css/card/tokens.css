@@ -90,8 +90,12 @@
   margin-top: 0.9rem;
 }
 .poim-media[data-count='2'],
+.poim-media[data-count='3'],
 .poim-media[data-count='4'] {
   grid-template-columns: 1fr 1fr;
+}
+.poim-media[data-count='3'] > :first-child {
+  grid-column: 1 / -1;
 }
 .poim-image,
 .poim-video {
@@ -106,6 +110,8 @@
 /* 多图格子仍 cover，避免高低不一把网格撑开；单图按原比例完整显示。 */
 .poim-media[data-count='2'] .poim-image,
 .poim-media[data-count='2'] .poim-video,
+.poim-media[data-count='3'] .poim-image,
+.poim-media[data-count='3'] .poim-video,
 .poim-media[data-count='4'] .poim-image,
 .poim-media[data-count='4'] .poim-video {
   height: 12rem;
@@ -118,8 +124,18 @@
   border: 1px dashed var(--poim-line);
   border-radius: var(--poim-radius);
 }
-.poim-quote .poim-handle {
-  margin-left: 0.4rem;
+.poim-quote .poim-text {
+  margin-top: 0.7rem;
+}
+.poim-quote .poim-media {
+  margin-top: 0.7rem;
+}
+
+.poim-repost,
+.poim-reply-to {
+  color: var(--poim-muted);
+  font-size: 0.85em;
+  margin-bottom: 0.65rem;
 }
 
 .poim-footer {

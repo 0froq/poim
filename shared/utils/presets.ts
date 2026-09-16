@@ -22,11 +22,15 @@ const BASE_HTML = `
   <div data-poim="text" class="poim-text"></div>
   <div data-poim="media" class="poim-media"></div>
   <div data-poim="quote" class="poim-quote" hidden>
-    <div class="poim-quote-inner">
-      <span data-poim="author-name" class="poim-name"></span>
-      <span data-poim="author-handle" class="poim-handle"></span>
-      <div data-poim="text" class="poim-text"></div>
+    <div class="poim-header">
+      <img data-poim="author-avatar" class="poim-avatar" alt="" />
+      <div class="poim-author">
+        <div data-poim="author-name" class="poim-name"></div>
+        <div data-poim="author-handle" class="poim-handle"></div>
+      </div>
     </div>
+    <div data-poim="text" class="poim-text"></div>
+    <div data-poim="media" class="poim-media"></div>
   </div>
   <div class="poim-footer">
     <div data-poim="metrics" class="poim-metrics"></div>
