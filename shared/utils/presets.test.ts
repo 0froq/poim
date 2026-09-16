@@ -156,6 +156,8 @@ describe('预设 CSS 外置 .css 文件（构建链追踪）', () => {
 
   it('回复连线走头像列，正文收到名字列，不和线重叠', () => {
     expect(tokensRaw).toMatch(/\.poim-flow::after\s*\{[^}]*left:\s*1\.25rem/)
+    expect(tokensRaw).toMatch(/\.poim-flow::after\s*\{[^}]*top:\s*calc\(2\.5rem \+ 2px\)/)
+    expect(tokensRaw).toMatch(/\.poim-flow::after\s*\{[^}]*z-index:\s*0/)
     expect(tokensRaw).toMatch(/\.poim-flow \.poim-text[\s\S]*?margin-left:\s*3\.25rem/)
   })
 })

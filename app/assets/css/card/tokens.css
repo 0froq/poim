@@ -53,10 +53,12 @@
 .poim-avatar {
   width: 2.5rem;
   height: 2.5rem;
+  box-sizing: border-box;
   object-fit: cover;
   border: 1px solid var(--poim-line);
   border-radius: var(--poim-radius);
   flex: none;
+  background: var(--poim-card);
 }
 
 .poim-name {
@@ -138,17 +140,25 @@
   object-fit: cover;
 }
 
-/* 回复：同宽流。线只走头像列（2.5rem 头像的中线），正文/媒体收到名字列。 */
+/* 回复：同宽流。线在头像列、头像之下；::after 不能盖住头像。 */
 .poim-flow {
   position: relative;
+  isolation: isolate;
   padding-bottom: 1rem;
   margin-bottom: 0.2rem;
+}
+.poim-flow > .poim-header,
+.poim-card:has(> .poim-flow:not([hidden])) > .poim-header {
+  align-items: flex-start;
+  position: relative;
+  z-index: 1;
 }
 .poim-flow::after {
   content: '';
   position: absolute;
+  z-index: 0;
   left: 1.25rem;
-  top: 2.5rem;
+  top: calc(2.5rem + 2px);
   bottom: 0;
   width: 1px;
   background: var(--poim-line);
