@@ -47,8 +47,10 @@ describe('卡片样例夹具', () => {
         expect(root.querySelector('.poim-reply-to'), item.id).toBeNull()
       }
       else if (item.post.replyToHandle) {
-        expect((root.querySelector('[data-poim="reply"]') as HTMLElement).hidden, item.id).toBe(true)
-        expect(root.querySelector('.poim-reply-to')?.textContent).toBe(`回复 @${item.post.replyToHandle}`)
+        const flow = root.querySelector('[data-poim="reply"]') as HTMLElement
+        expect(flow.hidden, item.id).toBe(false)
+        expect(flow.querySelector('[data-poim="author-handle"]')?.textContent).toBe(`@${item.post.replyToHandle}`)
+        expect(root.querySelector('.poim-reply-to'), item.id).toBeNull()
       }
       if (item.post.repostedBy) {
         expect(root.querySelector('.poim-repost')?.textContent).toContain('转发了')

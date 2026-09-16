@@ -65,7 +65,7 @@ poim 的产品直觉：**帖子是纸，卡片是纸片**。一个平台帖子�
 - **结构标签用 `div` 不用 `article/header/footer/section`**：合同 HTML 消毒白名单不含语义标签（见 `sanitize-html.ts` 与 `presets.test.ts`），用 div 保证消毒后结构不塌。语义由 class 承担。
 - 槽位：`data-poim="<slot>"` 首选，认同名 `id`；填入节点不删标签；`media`/`reply`/`quote` 是空容器，无回复/引用时 `hidden`。
 - **引用头栏与主帖同一套 DOM**：`.poim-header` + `.poim-avatar` + `.poim-author`（块级 name/handle）。引用内可再填一层 `media`。
-- **回复是同宽流**（`.poim-flow`）：原帖完整画出，和当前回复同一内容宽度，左侧细线串起来。
+- **回复是同宽流**（`.poim-flow`）：原帖在上、当前回复在下，同一内容宽度，左侧细线串起来。原帖体拉不到时仍画出原帖作者头栏，不改成「回复 @handle」行。
 - **转贴/引用是镶嵌**（`.poim-embed` / `.poim-quote`）：虚线框 + 略深底，不是流。
 - **多图拼图**：X 时间线四图横滑；本产品导出静态图，所以 2=并排、3=左大右叠、4=2×2，高度由 `planMediaMosaic` 按比例夹紧。单图仍 `height:auto` + contain。
 - 消毒只放行 `data-poim`，其余 `data-*` 剥掉（hook 实现，见 `sanitize-html.ts` 注释）。

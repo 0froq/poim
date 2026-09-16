@@ -187,6 +187,19 @@ describe('resolveXTweet', () => {
     expect(fetchStub.urls()).toHaveLength(2)
   })
 
+  it('treats fx private tweets as not found', async () => {
+    const fetchStub = stubFetch((url) => {
+      if (url.startsWith('https://api.fxtwitter.com/'))
+        return { status: 401, body: { code: 401, message: 'PRIVATE_TWEET', tweet: null } }
+      throw new Error('syndication should not be called')
+    })
+    await expect(resolveXTweet('20')).rejects.toMatchObject({
+      statusCode: 404,
+      data: { error: 'not_found' },
+    })
+    expect(fetchStub.urls()).toHaveLength(1)
+  })
+
   it('does not fall back when fx reports not found', async () => {
     const fetchStub = stubFetch((url) => {
       if (url.startsWith('https://api.fxtwitter.com/'))
@@ -262,15 +275,36 @@ describe('resolveXTweet', () => {
     ])
   })
 
-  it('keeps handle-only fallback when the parent tweet cannot be fetched', async () => {
-    stubFetch((url) => {
-      if (url.endsWith('/status/20'))
-        return { status: 200, body: { code: 200, tweet: { ...fxTweet, replying_to: 'parent', replying_to_status: '99' } } }
-      return { status: 404, body: {} }
+  it('still builds a parent flow stub when the original tweet cannot be fetched', async () => {
+    const fetchStub = stubFetch((url) => {
+      if (url.endsWith('/status/20')) {
+        return {
+          status: 200,
+          body: { code: 200, tweet: { ...fxTweet, replying_to: 'parent', replying_to_status: '99' } },
+        }
+      }
+      if (url.includes('/status/99'))
+        return { status: 404, body: {} }
+      if (url === 'https://api.fxtwitter.com/parent') {
+        return {
+          status: 200,
+          body: { user: { name: 'Parent Name', screen_name: 'parent', avatar_url: 'https://pbs.twimg.com/p.jpg' } },
+        }
+      }
+      throw new Error(`unexpected url: ${url}`)
     })
     const post = await resolveXTweet('20')
     expect(post.replyToHandle).toBe('parent')
-    expect(post.replyTo).toBeUndefined()
+    expect(post.replyTo).toMatchObject({
+      id: '99',
+      text: '',
+      author: { name: 'Parent Name', handle: 'parent', avatar: 'https://pbs.twimg.com/p.jpg' },
+    })
+    expect(fetchStub.urls()).toEqual([
+      'https://api.fxtwitter.com/status/20',
+      'https://api.fxtwitter.com/status/99',
+      'https://api.fxtwitter.com/parent',
+    ])
   })
 
   it('fails with unavailable when fx is down and syndication errors out', async () => {

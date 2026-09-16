@@ -1,5 +1,6 @@
 import type { PoimMedia, PoimPost } from '../../shared/types/post'
 import { createError, H3Error } from 'h3'
+import { emptyPost } from '../../shared/utils/empty-post'
 
 /**
  * X 帖子解析：FxEmbed 主、syndication 备（v1 不接官方 X API）。
@@ -37,7 +38,7 @@ export interface FxTweet {
   quote?: FxTweet
   replying_to?: string | null
   /** 被回复帖的 snowflake；有则再拉一层原帖体。 */
-  replying_to_status?: string | null
+  replying_to_status?: string | number | null
   reposted_by?: FxAuthor | null
   media?: {
     photos?: FxMediaItem[]
@@ -76,7 +77,7 @@ async function fetchJson(url: string): Promise<unknown> {
       headers: { 'accept': 'application/json', 'user-agent': 'poim/0.1' },
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     })
-    if (res.status === 404)
+    if (res.status === 404 || res.status === 401)
       throw notFound()
     if (!res.ok)
       throw unavailable()
@@ -162,8 +163,9 @@ export function mapFxTweet(tweet: FxTweet, source: PoimPost['source']): PoimPost
       views: tweet.views ?? undefined,
     },
   }
-  if (typeof tweet.replying_to === 'string' && tweet.replying_to.trim())
-    post.replyToHandle = tweet.replying_to.replace(/^@/, '')
+  const replyHandle = asHandle(tweet.replying_to)
+  if (replyHandle)
+    post.replyToHandle = replyHandle
   if (tweet.reposted_by) {
     post.repostedBy = {
       name: tweet.reposted_by.name ?? '',
@@ -277,23 +279,78 @@ async function resolveRawTweet(id: string): Promise<FxTweet> {
   }
 }
 
+function asHandle(raw: unknown): string | undefined {
+  if (typeof raw !== 'string')
+    return undefined
+  const handle = raw.replace(/^@/, '').trim()
+  return handle || undefined
+}
+
+function asStatusId(raw: unknown): string | undefined {
+  if (raw == null || raw === '')
+    return undefined
+  const id = String(raw).trim()
+  return id || undefined
+}
+
+function stubParentPost(handle?: string, id?: string): PoimPost {
+  const post = emptyPost()
+  post.source = 'url'
+  post.id = id
+  const h = handle ?? ''
+  post.author = { name: h, handle: h }
+  post.text = ''
+  post.media = []
+  return post
+}
+
+async function fetchFxUser(handle: string): Promise<FxAuthor | null> {
+  try {
+    const body = await fetchJson(`https://api.fxtwitter.com/${encodeURIComponent(handle)}`) as { user?: FxAuthor | null }
+    return body.user ?? null
+  }
+  catch {
+    return null
+  }
+}
+
+async function resolveParentPost(tweet: FxTweet, childId: string): Promise<PoimPost | undefined> {
+  const handle = asHandle(tweet.replying_to)
+  const parentId = asStatusId(tweet.replying_to_status)
+  if (!handle && !parentId)
+    return undefined
+  if (parentId && parentId !== childId) {
+    try {
+      const parentTweet = await resolveRawTweet(parentId)
+      return mapFxTweet({
+        ...parentTweet,
+        replying_to: undefined,
+        replying_to_status: undefined,
+      }, 'url')
+    }
+    catch {
+      // 私密/删除：仍用同宽流画出原帖作者
+    }
+  }
+  const stub = stubParentPost(handle, parentId)
+  if (handle) {
+    const user = await fetchFxUser(handle)
+    if (user) {
+      stub.author = {
+        name: user.name || handle,
+        handle: user.screen_name || handle,
+        avatar: user.avatar_url,
+      }
+    }
+  }
+  return stub
+}
+
 export async function resolveXTweet(id: string): Promise<PoimPost> {
   const tweet = await resolveRawTweet(id)
   const post = mapFxTweet(tweet, 'url')
-  const parentId = tweet.replying_to_status?.trim()
-  if (!parentId || parentId === id)
-    return post
-  try {
-    const parentTweet = await resolveRawTweet(parentId)
-    // 原帖只一层：不再跟它的回复链
-    post.replyTo = mapFxTweet({
-      ...parentTweet,
-      replying_to: undefined,
-      replying_to_status: undefined,
-    }, 'url')
-  }
-  catch {
-    // 父帖拉不到就只留 replyToHandle
-  }
+  const parent = await resolveParentPost(tweet, post.id ?? id)
+  if (parent)
+    post.replyTo = parent
   return post
 }

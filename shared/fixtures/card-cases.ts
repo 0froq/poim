@@ -105,7 +105,7 @@ export const CARD_CASES: CardCase[] = [
   {
     id: 'reply-handle-only',
     title: '回复 · 仅有 handle',
-    note: '解析层拿不到原帖体时退回一行提示。',
+    note: '原帖体拉不到时仍把原帖作者放在上方同宽流。',
     post: Object.assign(base(AUTHORS.walker, '只能看到 handle。'), {
       replyToHandle: 'isnail',
     }),

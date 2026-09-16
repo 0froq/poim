@@ -1,4 +1,5 @@
 import type { PoimMedia, PoimPost } from '../types/post'
+import { emptyPost } from './empty-post'
 import { formatIsoDate, formatIsoDateTime } from './format-date'
 import { applyMediaMosaic, MOSAIC_MAX } from './media-layout'
 import { formatHandle } from './parse-x-url'
@@ -179,9 +180,32 @@ function slotOwn(root: HTMLElement, name: 'media' | 'text', nested: Array<HTMLEl
 
 function fillNested(container: HTMLElement, post: PoimPost, ctx: FillContext): void {
   fillAuthorAndText(container, post, [])
+  const text = queryPoimSlot(container, 'text')
+  if (text) {
+    if (post.text.trim())
+      show(text)
+    else
+      hide(text)
+  }
+  const time = queryPoimSlot(container, 'time')
+  if (time && !post.createdAt)
+    hide(time)
   const media = queryPoimSlot(container, 'media')
   if (media)
     fillMedia(media, post.media, ctx.mediaSrc)
+}
+
+function parentForReply(post: PoimPost): PoimPost | null {
+  if (post.replyTo)
+    return post.replyTo
+  const handle = post.replyToHandle?.replace(/^@/, '').trim()
+  if (!handle)
+    return null
+  const stub = emptyPost()
+  stub.author = { name: handle, handle }
+  stub.text = ''
+  stub.media = []
+  return stub
 }
 
 function wrapMainAsEmbed(root: HTMLElement, nested: Array<HTMLElement | null>): void {
@@ -233,12 +257,13 @@ export function fillTemplate(root: HTMLElement, post: PoimPost, ctx: FillContext
     fillMedia(media, post.media, ctx.mediaSrc)
 
   if (replyRoot) {
-    if (!post.replyTo) {
+    const parent = parentForReply(post)
+    if (!parent) {
       hide(replyRoot)
     }
     else {
       show(replyRoot)
-      fillNested(replyRoot, post.replyTo, ctx)
+      fillNested(replyRoot, parent, ctx)
     }
   }
 
@@ -261,15 +286,7 @@ export function fillTemplate(root: HTMLElement, post: PoimPost, ctx: FillContext
       : null,
     replyRoot && !replyRoot.hidden ? replyRoot : header,
   )
-  const handleOnly = !post.replyTo && post.replyToHandle
-    ? `回复 ${formatHandle(post.replyToHandle)}`
-    : null
-  syncLead(
-    root,
-    'poim-reply-to',
-    handleOnly,
-    header ? header.nextSibling : null,
-  )
+  syncLead(root, 'poim-reply-to', null, null)
 
   if (post.repostedBy)
     wrapMainAsEmbed(root, nested)

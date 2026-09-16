@@ -114,7 +114,7 @@ describe('fillTemplate', () => {
     expect(root.querySelector('.poim-reply-to')).toBeNull()
   })
 
-  it('没有原帖体时退回「回复 @handle」一行', () => {
+  it('没有原帖体时仍把原帖作者放在上方同宽流', () => {
     document.body.innerHTML = getPreset('default').html
     const root = document.querySelector('.poim-card') as HTMLElement
     const post = emptyPost()
@@ -122,8 +122,12 @@ describe('fillTemplate', () => {
     post.text = 'reply body'
     post.replyToHandle = 'parent'
     fillTemplate(root, post, { mediaSrc: u => u })
-    expect((root.querySelector('[data-poim="reply"]') as HTMLElement).hidden).toBe(true)
-    expect(root.querySelector('.poim-reply-to')?.textContent).toBe('回复 @parent')
+    const flow = root.querySelector('[data-poim="reply"]') as HTMLElement
+    expect(flow.hidden).toBe(false)
+    expect(flow.querySelector('[data-poim="author-handle"]')?.textContent).toBe('@parent')
+    expect((flow.querySelector('[data-poim="text"]') as HTMLElement).hidden).toBe(true)
+    expect(root.querySelector(':scope > .poim-header [data-poim="author-name"]')?.textContent).toBe('Kid')
+    expect(root.querySelector('.poim-reply-to')).toBeNull()
   })
 
   it('转发 + 引用时把主帖连同引用一起镶嵌，不把引用槽当成转发壳', () => {
