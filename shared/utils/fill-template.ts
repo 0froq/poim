@@ -1,5 +1,6 @@
 import type { PoimMedia, PoimPost } from '../types/post'
 import { formatIsoDate, formatIsoDateTime } from './format-date'
+import { applyMediaMosaic, MOSAIC_MAX } from './media-layout'
 import { formatHandle } from './parse-x-url'
 import { queryPoimSlot, queryPoimSlots } from './slots'
 
@@ -20,10 +21,8 @@ function show(el: HTMLElement): void {
   el.hidden = false
 }
 
-function isInsideQuote(el: Element, quoteRoot: Element | null): boolean {
-  if (!quoteRoot)
-    return false
-  return quoteRoot.contains(el) && el !== quoteRoot
+function isInsideAny(el: Element, roots: Array<HTMLElement | null>): boolean {
+  return roots.some(root => !!root && root.contains(el) && el !== root)
 }
 
 // 稳定国际日期格式（PROJECT.md §3）：YYYY-MM-DD，必要时 YYYY-MM-DD HH:mm。
@@ -98,8 +97,9 @@ function provenanceEl(): HTMLElement {
 
 function renderMedia(container: HTMLElement, media: PoimMedia[], mediaSrc: (url: string) => string): void {
   container.replaceChildren()
-  container.dataset.count = String(media.length)
-  for (const item of media) {
+  const items = media.slice(0, MOSAIC_MAX)
+  container.dataset.count = String(items.length)
+  for (const item of items) {
     if (item.type === 'video' || item.type === 'gif') {
       const video = document.createElement('video')
       video.setAttribute('src', mediaSrc(item.url))
@@ -124,19 +124,19 @@ function renderMedia(container: HTMLElement, media: PoimMedia[], mediaSrc: (url:
   }
 }
 
-function fillAuthorAndText(scope: ParentNode, post: PoimPost, quoteRoot: HTMLElement | null): void {
+function fillAuthorAndText(scope: ParentNode, post: PoimPost, skipRoots: Array<HTMLElement | null>): void {
   for (const el of queryPoimSlots(scope, 'author-name')) {
-    if (isInsideQuote(el, quoteRoot))
+    if (isInsideAny(el, skipRoots))
       continue
     el.textContent = post.author.name
   }
   for (const el of queryPoimSlots(scope, 'author-handle')) {
-    if (isInsideQuote(el, quoteRoot))
+    if (isInsideAny(el, skipRoots))
       continue
     el.textContent = formatHandle(post.author.handle)
   }
   for (const el of queryPoimSlots(scope, 'author-avatar')) {
-    if (isInsideQuote(el, quoteRoot))
+    if (isInsideAny(el, skipRoots))
       continue
     if (el instanceof HTMLImageElement) {
       if (post.author.avatar)
@@ -146,12 +146,12 @@ function fillAuthorAndText(scope: ParentNode, post: PoimPost, quoteRoot: HTMLEle
     }
   }
   for (const el of queryPoimSlots(scope, 'text')) {
-    if (isInsideQuote(el, quoteRoot))
+    if (isInsideAny(el, skipRoots))
       continue
     el.textContent = post.text
   }
   for (const el of queryPoimSlots(scope, 'time')) {
-    if (isInsideQuote(el, quoteRoot))
+    if (isInsideAny(el, skipRoots))
       continue
     el.textContent = formatPostTime(post.createdAt)
     if (el instanceof HTMLTimeElement && post.createdAt)
@@ -169,11 +169,43 @@ function fillMedia(container: HTMLElement, media: PoimMedia[], mediaSrc: (url: s
     url: mediaSrc(item.url),
     poster: item.poster ? mediaSrc(item.poster) : undefined,
   })), url => url)
+  applyMediaMosaic(container, media)
   show(container)
 }
 
-function slotOutsideQuote(root: HTMLElement, name: 'media', quoteRoot: HTMLElement | null): HTMLElement | null {
-  return queryPoimSlots(root, name).find(el => !quoteRoot?.contains(el)) ?? null
+function slotOwn(root: HTMLElement, name: 'media' | 'text', nested: Array<HTMLElement | null>): HTMLElement | null {
+  return queryPoimSlots(root, name).find(el => !isInsideAny(el, nested)) ?? null
+}
+
+function fillNested(container: HTMLElement, post: PoimPost, ctx: FillContext): void {
+  fillAuthorAndText(container, post, [])
+  const media = queryPoimSlot(container, 'media')
+  if (media)
+    fillMedia(media, post.media, ctx.mediaSrc)
+}
+
+function wrapMainAsEmbed(root: HTMLElement, nested: Array<HTMLElement | null>): void {
+  // 引用槽也带 .poim-embed；转发壳没有 data-poim。
+  if (root.querySelector(':scope > .poim-embed:not([data-poim])'))
+    return
+  const embed = document.createElement('div')
+  embed.className = 'poim-embed'
+  const header = root.querySelector(':scope > .poim-header')
+  const text = slotOwn(root, 'text', nested)
+  const media = slotOwn(root, 'media', nested)
+  const quote = nested.find(el => el?.getAttribute('data-poim') === 'quote') ?? null
+  const start = header ?? text ?? media
+  if (!start)
+    return
+  start.before(embed)
+  if (header)
+    embed.append(header)
+  if (text)
+    embed.append(text)
+  if (media)
+    embed.append(media)
+  if (quote && !quote.hidden)
+    embed.append(quote)
 }
 
 function syncLead(card: HTMLElement, className: string, text: string | null, before: ChildNode | null): void {
@@ -191,12 +223,34 @@ function syncLead(card: HTMLElement, className: string, text: string | null, bef
 }
 
 export function fillTemplate(root: HTMLElement, post: PoimPost, ctx: FillContext): void {
+  const replyRoot = queryPoimSlot(root, 'reply')
   const quoteRoot = queryPoimSlot(root, 'quote')
-  fillAuthorAndText(root, post, quoteRoot)
+  const nested = [replyRoot, quoteRoot]
+  fillAuthorAndText(root, post, nested)
 
-  const media = slotOutsideQuote(root, 'media', quoteRoot)
+  const media = slotOwn(root, 'media', nested)
   if (media)
     fillMedia(media, post.media, ctx.mediaSrc)
+
+  if (replyRoot) {
+    if (!post.replyTo) {
+      hide(replyRoot)
+    }
+    else {
+      show(replyRoot)
+      fillNested(replyRoot, post.replyTo, ctx)
+    }
+  }
+
+  if (quoteRoot) {
+    if (!post.quote) {
+      hide(quoteRoot)
+    }
+    else {
+      show(quoteRoot)
+      fillNested(quoteRoot, post.quote, ctx)
+    }
+  }
 
   const header = root.querySelector(':scope > .poim-header')
   syncLead(
@@ -205,14 +259,20 @@ export function fillTemplate(root: HTMLElement, post: PoimPost, ctx: FillContext
     post.repostedBy
       ? `${post.repostedBy.name || formatHandle(post.repostedBy.handle)} 转发了`
       : null,
-    header,
+    replyRoot && !replyRoot.hidden ? replyRoot : header,
   )
+  const handleOnly = !post.replyTo && post.replyToHandle
+    ? `回复 ${formatHandle(post.replyToHandle)}`
+    : null
   syncLead(
     root,
     'poim-reply-to',
-    post.replyToHandle ? `回复 ${formatHandle(post.replyToHandle)}` : null,
+    handleOnly,
     header ? header.nextSibling : null,
   )
+
+  if (post.repostedBy)
+    wrapMainAsEmbed(root, nested)
 
   const metrics = queryPoimSlot(root, 'metrics')
   if (metrics) {
@@ -267,19 +327,6 @@ export function fillTemplate(root: HTMLElement, post: PoimPost, ctx: FillContext
     brand.textContent = 'poim'
     if (brand instanceof HTMLAnchorElement)
       brand.href = ctx.brandHref ?? '/'
-  }
-
-  if (quoteRoot) {
-    if (!post.quote) {
-      hide(quoteRoot)
-    }
-    else {
-      show(quoteRoot)
-      fillAuthorAndText(quoteRoot, post.quote, null)
-      const quotedMedia = queryPoimSlot(quoteRoot, 'media')
-      if (quotedMedia)
-        fillMedia(quotedMedia, post.quote.media, ctx.mediaSrc)
-    }
   }
 
   const avatars = queryPoimSlots(root, 'author-avatar')

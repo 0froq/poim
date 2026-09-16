@@ -95,9 +95,11 @@ describe('mapFxTweet', () => {
     const post = mapFxTweet({
       ...fxTweet,
       replying_to: '@parent',
+      replying_to_status: '99',
       reposted_by: { name: 'Fwd', screen_name: 'fwd', avatar_url: 'https://pbs.twimg.com/profile_images/fwd.png' },
     }, 'url')
     expect(post.replyToHandle).toBe('parent')
+    expect(post.replyTo).toBeUndefined()
     expect(post.repostedBy).toEqual({
       name: 'Fwd',
       handle: 'fwd',
@@ -224,6 +226,51 @@ describe('resolveXTweet', () => {
       statusCode: 502,
       data: { error: 'unavailable' },
     })
+  })
+
+  it('fetches the parent tweet body for replies', async () => {
+    const parentTweet: FxTweet = {
+      id: '99',
+      url: 'https://x.com/parent/status/99',
+      text: 'original post',
+      author: { name: 'Parent', screen_name: 'parent', avatar_url: 'https://pbs.twimg.com/p.jpg' },
+      media: { photos: [{ url: 'https://pbs.twimg.com/media/orig.jpg', width: 1200, height: 800 }] },
+      replying_to: 'older',
+      replying_to_status: '1',
+    }
+    const fetchStub = stubFetch((url) => {
+      if (url.endsWith('/status/20'))
+        return { status: 200, body: { code: 200, tweet: { ...fxTweet, replying_to: 'parent', replying_to_status: '99' } } }
+      if (url.endsWith('/status/99'))
+        return { status: 200, body: { code: 200, tweet: parentTweet } }
+      throw new Error(`unexpected url: ${url}`)
+    })
+    const post = await resolveXTweet('20')
+    expect(post.replyToHandle).toBe('parent')
+    expect(post.replyTo).toMatchObject({
+      id: '99',
+      text: 'original post',
+      author: { name: 'Parent', handle: 'parent' },
+    })
+    expect(post.replyTo?.media).toEqual([
+      { type: 'image', url: 'https://pbs.twimg.com/media/orig.jpg', width: 1200, height: 800 },
+    ])
+    expect(post.replyTo?.replyToHandle).toBeUndefined()
+    expect(fetchStub.urls()).toEqual([
+      'https://api.fxtwitter.com/status/20',
+      'https://api.fxtwitter.com/status/99',
+    ])
+  })
+
+  it('keeps handle-only fallback when the parent tweet cannot be fetched', async () => {
+    stubFetch((url) => {
+      if (url.endsWith('/status/20'))
+        return { status: 200, body: { code: 200, tweet: { ...fxTweet, replying_to: 'parent', replying_to_status: '99' } } }
+      return { status: 404, body: {} }
+    })
+    const post = await resolveXTweet('20')
+    expect(post.replyToHandle).toBe('parent')
+    expect(post.replyTo).toBeUndefined()
   })
 
   it('fails with unavailable when fx is down and syndication errors out', async () => {

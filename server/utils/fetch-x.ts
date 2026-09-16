@@ -36,6 +36,8 @@ export interface FxTweet {
   views?: number | null
   quote?: FxTweet
   replying_to?: string | null
+  /** 被回复帖的 snowflake；有则再拉一层原帖体。 */
+  replying_to_status?: string | null
   reposted_by?: FxAuthor | null
   media?: {
     photos?: FxMediaItem[]
@@ -255,16 +257,16 @@ export async function fetchSyndicationTweet(id: string): Promise<FxTweet> {
   return mapSyndicationTweet(body)
 }
 
-export async function resolveXTweet(id: string): Promise<PoimPost> {
+async function resolveRawTweet(id: string): Promise<FxTweet> {
   try {
-    return mapFxTweet(await fetchFxTweet(id), 'url')
+    return await fetchFxTweet(id)
   }
   catch (error) {
     // FxEmbed 明确 404（删除/私密）是权威结论，不再回落 syndication
     if (isFailure(error, 'not_found'))
       throw error
     try {
-      return mapFxTweet(await fetchSyndicationTweet(id), 'url')
+      return await fetchSyndicationTweet(id)
     }
     catch (fallbackError) {
       if (isFailure(fallbackError, 'not_found'))
@@ -273,4 +275,25 @@ export async function resolveXTweet(id: string): Promise<PoimPost> {
       throw unavailable()
     }
   }
+}
+
+export async function resolveXTweet(id: string): Promise<PoimPost> {
+  const tweet = await resolveRawTweet(id)
+  const post = mapFxTweet(tweet, 'url')
+  const parentId = tweet.replying_to_status?.trim()
+  if (!parentId || parentId === id)
+    return post
+  try {
+    const parentTweet = await resolveRawTweet(parentId)
+    // 原帖只一层：不再跟它的回复链
+    post.replyTo = mapFxTweet({
+      ...parentTweet,
+      replying_to: undefined,
+      replying_to_status: undefined,
+    }, 'url')
+  }
+  catch {
+    // 父帖拉不到就只留 replyToHandle
+  }
+  return post
 }

@@ -36,9 +36,11 @@ export interface PoimPost {
   media: PoimMedia[]
   metrics?: PoimMetrics
   quote?: PoimPost
-  /** 回复对象的 handle（不含 @）。卡片顶栏一行「回复 @handle」，不是第二套作者头。 */
+  /** 回复的原帖。同宽流式排在当前回复之上（不是镶嵌）。 */
+  replyTo?: PoimPost
+  /** 仅有 handle、没有原帖体时的退路（解析层暂时拿不到父帖）。 */
   replyToHandle?: string
-  /** 转发者。卡片顶栏一行「Name 转发了」，作者头栏仍是原帖作者。 */
+  /** 转发者。原帖作为镶嵌，不是同宽流。 */
   repostedBy?: PoimAuthor
 }
 

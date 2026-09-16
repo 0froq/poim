@@ -76,9 +76,10 @@ UnoCSS 习惯与个人站一致：`presetWind4`、attributify **`un-` 前缀**�
 
 - 首选 `data-poim="<slot>"`；也认同名 `id`。
 - **填入节点，不删标签。**
-- 白名单：`author-name` `author-handle` `author-avatar` `time` `text` `media` `metrics` `quote` `badge` `brand`。
-- `media` / `quote` 是**空容器**：生成器填真实媒体；引用块内可再放一层 `media`（仍只一层引用，不递归引用的引用）；无引用则隐藏 quote。
-- 回复 / 转发不是第二套作者头栏：`replyToHandle` 在头栏下写「回复 @handle」；`repostedBy` 在头栏上写「Name 转发了」。引用作者必须与主帖同一套 `.poim-header` + `.poim-avatar` + 块级 name/handle。
+- 白名单：`author-name` `author-handle` `author-avatar` `time` `text` `media` `metrics` `reply` `quote` `badge` `brand`。
+- `media` / `reply` / `quote` 是**空容器**：生成器填真实内容。`reply` 是**同宽流**（原帖在上、当前回复在下）；`quote` 与转发原帖是**镶嵌**（虚线框，不是流）。引用只一层。无回复/引用则隐藏对应节点。
+- 仅有 `replyToHandle`、没有原帖体时退回「回复 @handle」一行（解析层暂时拿不到父帖）。`repostedBy` 在镶嵌上方写「Name 转发了」。
+- 媒体最多四张。单图按原比例完整显示。2/3/4 张做静态拼图（并排 / 左大右叠 / 2×2），格内 cover。不做横向滚动——PNG 与 WC 快照无法滚动。
 
 HTML 消毒（DOMPurify 白名单）：`div/span/p/a/img/video/picture/source/h1-h3/ul/ol/li/blockquote/figure/figcaption/time/strong/em/br` + `data-poim` / `class` / `style`。禁 `script`、事件属性、`iframe`、`object`、`form`。`a[href]` 仅 `http(s)`。
 
@@ -119,6 +120,9 @@ interface PoimPost {
     views?: number
   }
   quote?: PoimPost // 仅一层
+  replyTo?: PoimPost // 回复原帖，同宽流；只一层
+  replyToHandle?: string // 拿不到原帖体时的退路
+  repostedBy?: { name: string, handle: string, avatar?: string }
 }
 
 interface PoimMedia {

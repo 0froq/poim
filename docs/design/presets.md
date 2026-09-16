@@ -63,9 +63,11 @@ poim 的产品直觉：**帖子是纸，卡片是纸片**。一个平台帖子�
 > RE-11 已移除可视化 token 覆盖层（样式 / 色 / 字体 / 圆角编辑 UI 与 `card-tokens.ts`）；设置面板只保留与实际输出有关的控制（metadata 显示开关与 HTML/CSS 编辑入口）。
 
 - **结构标签用 `div` 不用 `article/header/footer/section`**：合同 HTML 消毒白名单不含语义标签（见 `sanitize-html.ts` 与 `presets.test.ts`），用 div 保证消毒后结构不塌。语义由 class 承担。
-- 槽位：`data-poim="<slot>"` 首选，认同名 `id`；填入节点不删标签；`media`/`quote` 是空容器，无引用时 `hidden`。
-- **引用头栏与主帖同一套 DOM**：`.poim-header` + `.poim-avatar` + `.poim-author`（`.poim-name` / `.poim-handle` 为块级 `div`）。引用内可再填一层 `media`。不得把引用写成行内 `span` 名字+handle、也不得省略头像槽。
-- 回复/转发只用上下文行（`.poim-reply-to` / `.poim-repost`），不另做一套缩小头像+名字。
+- 槽位：`data-poim="<slot>"` 首选，认同名 `id`；填入节点不删标签；`media`/`reply`/`quote` 是空容器，无回复/引用时 `hidden`。
+- **引用头栏与主帖同一套 DOM**：`.poim-header` + `.poim-avatar` + `.poim-author`（块级 name/handle）。引用内可再填一层 `media`。
+- **回复是同宽流**（`.poim-flow`）：原帖完整画出，和当前回复同一内容宽度，左侧细线串起来。
+- **转贴/引用是镶嵌**（`.poim-embed` / `.poim-quote`）：虚线框 + 略深底，不是流。
+- **多图拼图**：X 时间线四图横滑；本产品导出静态图，所以 2=并排、3=左大右叠、4=2×2，高度由 `planMediaMosaic` 按比例夹紧。单图仍 `height:auto` + contain。
 - 消毒只放行 `data-poim`，其余 `data-*` 剥掉（hook 实现，见 `sanitize-html.ts` 注释）。
 
 ## 5. 已知取舍

@@ -10,7 +10,9 @@ describe('卡片样例夹具', () => {
     expect(ids).toContain('post-1-port')
     expect(ids).toContain('post-3')
     expect(ids).toContain('post-4')
-    expect(ids).toContain('reply-text')
+    expect(ids).toContain('reply-handle-only')
+    expect(ids).toContain('reply-parent-port')
+    expect(ids).toContain('reply-both-media')
     expect(ids).toContain('repost-text')
     expect(ids).toContain('quote-text')
     expect(ids).toContain('quote-parent-port')
@@ -26,6 +28,7 @@ describe('卡片样例夹具', () => {
       const root = document.querySelector('.poim-card') as HTMLElement
       fillTemplate(root, item.post, { mediaSrc: u => u })
       const header = root.querySelector(':scope > .poim-header')
+        ?? root.querySelector(':scope > .poim-embed > .poim-header')
       expect(header, item.id).toBeTruthy()
       expect(header!.querySelector('[data-poim="author-name"]')?.tagName).toBe('DIV')
       expect(header!.querySelector('[data-poim="author-handle"]')?.tagName).toBe('DIV')
@@ -36,10 +39,21 @@ describe('卡片样例夹具', () => {
         expect(qHeader!.querySelector('[data-poim="author-handle"]')?.tagName).toBe('DIV')
         expect(qHeader!.querySelector('[data-poim="author-avatar"]')?.classList.contains('poim-avatar')).toBe(true)
       }
-      if (item.post.replyToHandle)
-        expect(root.querySelector('.poim-reply-to')?.textContent).toContain('@')
-      if (item.post.repostedBy)
+      if (item.post.replyTo) {
+        const flow = root.querySelector('[data-poim="reply"]') as HTMLElement
+        expect(flow.hidden, item.id).toBe(false)
+        expect(flow.classList.contains('poim-flow')).toBe(true)
+        expect(flow.querySelector('[data-poim="author-name"]')?.textContent).toBe(item.post.replyTo.author.name)
+        expect(root.querySelector('.poim-reply-to'), item.id).toBeNull()
+      }
+      else if (item.post.replyToHandle) {
+        expect((root.querySelector('[data-poim="reply"]') as HTMLElement).hidden, item.id).toBe(true)
+        expect(root.querySelector('.poim-reply-to')?.textContent).toBe(`回复 @${item.post.replyToHandle}`)
+      }
+      if (item.post.repostedBy) {
         expect(root.querySelector('.poim-repost')?.textContent).toContain('转发了')
+        expect(root.querySelector(':scope > .poim-embed'), item.id).toBeTruthy()
+      }
     }
   })
 })

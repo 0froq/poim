@@ -81,19 +81,19 @@ export const CARD_CASES: CardCase[] = [
   {
     id: 'post-2',
     title: '原创 · 2 图',
-    note: '双宫格 cover。',
+    note: '并排两格，共享高度。',
     post: Object.assign(base(AUTHORS.snail, '两张图。'), { media: pics('mix', 2) }),
   },
   {
     id: 'post-3',
     title: '原创 · 3 图',
-    note: '上 1 下 2。',
+    note: '左大右两叠，静态拼图。',
     post: Object.assign(base(AUTHORS.snail, '三张图。'), { media: pics('mix', 3) }),
   },
   {
     id: 'post-4',
     title: '原创 · 4 图',
-    note: '2×2 宫格。',
+    note: '2×2，不用横滑。',
     post: Object.assign(base(AUTHORS.snail, '四张图。'), { media: pics('mix', 4) }),
   },
   {
@@ -103,30 +103,57 @@ export const CARD_CASES: CardCase[] = [
     post: base({ name: '无名', handle: 'anon' }, '作者没有头像。'),
   },
   {
+    id: 'reply-handle-only',
+    title: '回复 · 仅有 handle',
+    note: '解析层拿不到原帖体时退回一行提示。',
+    post: Object.assign(base(AUTHORS.walker, '只能看到 handle。'), {
+      replyToHandle: 'isnail',
+    }),
+  },
+  {
     id: 'reply-text',
-    title: '回复 · 无图',
-    note: '头栏下方「回复 @handle」，作者头栏仍是回复者。',
-    post: Object.assign(base(AUTHORS.walker, '同意，而且更糟。'), { replyToHandle: AUTHORS.snail.handle }),
+    title: '回复 · 双方无图',
+    note: '原帖与回复同宽流，不是镶嵌。',
+    post: Object.assign(base(AUTHORS.walker, '同意，而且更糟。'), {
+      replyTo: quoted(AUTHORS.snail, '纯文字原帖。'),
+    }),
   },
   {
     id: 'reply-1',
-    title: '回复 · 自己 1 图',
-    note: '回复行 + 回复者头栏 + 自己的图。',
+    title: '回复 · 自己 1 图 / 原帖无图',
+    note: '流式原帖 + 回复配图。',
     post: Object.assign(base(AUTHORS.walker, '配一张图回。'), {
-      replyToHandle: AUTHORS.snail.handle,
+      replyTo: quoted(AUTHORS.snail, '原帖只有字。'),
+      media: pics('land', 1),
+    }),
+  },
+  {
+    id: 'reply-parent-port',
+    title: '回复 · 原帖竖图 / 自己无图',
+    note: '原帖竖图在流里完整显示。',
+    post: Object.assign(base(AUTHORS.walker, '这图太长了。'), {
+      replyTo: quoted(AUTHORS.snail, '一条竖图原帖。', pics('port', 1)),
+    }),
+  },
+  {
+    id: 'reply-both-media',
+    title: '回复 · 原帖 2 图 / 自己 1 图',
+    note: '同宽流里两套媒体拼图。',
+    post: Object.assign(base(AUTHORS.walker, '回一张。'), {
+      replyTo: quoted(AUTHORS.snail, '原帖两张。', pics('mix', 2)),
       media: pics('land', 1),
     }),
   },
   {
     id: 'repost-text',
     title: '转发 · 无图',
-    note: '顶栏「Name 转发了」，头栏是原作者。',
+    note: '「转发了」+ 原帖镶嵌，不是同宽流。',
     post: Object.assign(base(AUTHORS.snail, '被转发的原文。'), { repostedBy: AUTHORS.walker }),
   },
   {
     id: 'repost-1',
     title: '转发 · 原帖 1 图',
-    note: '转发行不套第二套头像样式。',
+    note: '镶嵌里的竖图按单图完整比例。',
     post: Object.assign(base(AUTHORS.hr, '招聘原文。'), {
       repostedBy: AUTHORS.snail,
       media: pics('port', 1),
@@ -193,10 +220,10 @@ export const CARD_CASES: CardCase[] = [
   },
   {
     id: 'reply-quote-media',
-    title: '回复 + 引用 · 双方有图',
-    note: '回复行 + 主头栏 + 主图 + 引用头栏/图。',
+    title: '回复 + 引用 · 原帖与引用都有图',
+    note: '原帖走同宽流，引用仍是镶嵌。',
     post: Object.assign(base(AUTHORS.walker, '回在引用下面。'), {
-      replyToHandle: AUTHORS.snail.handle,
+      replyTo: quoted(AUTHORS.snail, '被回复的原帖', pics('land', 1)),
       media: pics('land', 1),
       quote: quoted(AUTHORS.hr, '被引的招聘', pics('port', 1)),
     }),
@@ -204,7 +231,7 @@ export const CARD_CASES: CardCase[] = [
   {
     id: 'repost-quote',
     title: '转发 + 引用 · 父级 2 图',
-    note: '转发行 + 原作者头栏 + 引用。',
+    note: '整段原帖（含引用）放进镶嵌。',
     post: Object.assign(base(AUTHORS.snail, '转发这条引用。'), {
       repostedBy: AUTHORS.walker,
       quote: quoted(AUTHORS.hr, '两张配图', pics('mix', 2)),

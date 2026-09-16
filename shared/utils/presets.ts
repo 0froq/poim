@@ -11,6 +11,18 @@ export interface PoimPreset {
 
 const BASE_HTML = `
 <div class="poim-card">
+  <div data-poim="reply" class="poim-flow" hidden>
+    <div class="poim-header">
+      <img data-poim="author-avatar" class="poim-avatar" alt="" />
+      <div class="poim-author">
+        <div data-poim="author-name" class="poim-name"></div>
+        <div data-poim="author-handle" class="poim-handle"></div>
+      </div>
+      <time data-poim="time" class="poim-time"></time>
+    </div>
+    <div data-poim="text" class="poim-text"></div>
+    <div data-poim="media" class="poim-media"></div>
+  </div>
   <div class="poim-header">
     <img data-poim="author-avatar" class="poim-avatar" alt="" />
     <div class="poim-author">
@@ -21,7 +33,7 @@ const BASE_HTML = `
   </div>
   <div data-poim="text" class="poim-text"></div>
   <div data-poim="media" class="poim-media"></div>
-  <div data-poim="quote" class="poim-quote" hidden>
+  <div data-poim="quote" class="poim-quote poim-embed" hidden>
     <div class="poim-header">
       <img data-poim="author-avatar" class="poim-avatar" alt="" />
       <div class="poim-author">

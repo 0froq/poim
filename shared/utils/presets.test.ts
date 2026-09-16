@@ -55,6 +55,7 @@ describe('预设与合同白名单', () => {
       'text',
       'media',
       'metrics',
+      'reply',
       'badge',
       'brand',
     ]
@@ -73,6 +74,10 @@ describe('预设与合同白名单', () => {
       expect(quote!.querySelector('[data-poim="author-handle"]')?.tagName).toBe('DIV')
       expect(quote!.querySelector('[data-poim="media"]')?.classList.contains('poim-media')).toBe(true)
       expect(quote!.querySelector('.poim-quote-inner')).toBeNull()
+      const reply = new DOMParser().parseFromString(preset.html, 'text/html').querySelector('[data-poim="reply"]')
+      expect(reply?.classList.contains('poim-flow')).toBe(true)
+      expect(reply?.querySelector('.poim-header')).toBeTruthy()
+      expect(reply?.querySelector('[data-poim="media"]')).toBeTruthy()
     }
   })
 
@@ -140,8 +145,9 @@ describe('预设 CSS 外置 .css 文件（构建链追踪）', () => {
     expect(mediaBlock).not.toMatch(/max-height/)
     expect(mediaBlock).not.toMatch(/object-fit:\s*cover/)
 
-    const gridCover = tokensRaw.match(/\.poim-media\[data-count='2'\] \.poim-image[\s\S]*?\}/)?.[0]
-    expect(gridCover).toMatch(/object-fit:\s*cover/)
+    expect(tokensRaw).toMatch(/data-mosaic='grid2x2'/)
+    expect(tokensRaw).toMatch(/\.poim-media\[data-mosaic='grid2x2'\] \.poim-image[\s\S]*object-fit:\s*cover/)
+    expect(tokensRaw).not.toMatch(/\.poim-media\[data-count=/)
   })
 
   it('引用不把 handle 写成行内附加边距，头栏沿用主帖结构', () => {
