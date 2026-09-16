@@ -54,7 +54,7 @@ const BASE_HTML = `
 
 // 预设 CSS 的可编辑源是 app/assets/css/card/ 下的真实 .css 文件（构建链直接追踪：
 // 编辑即 LSP / 语法高亮 / Vite HMR）。WC 导出注入的是 ?raw 冻结文本，单 DOM 契约不变。
-// 叠层（PROJECT.md §3）：tokens.css（token 基础层）→ 预设额外层 → 用户 CSS。
+// 叠层：tokens.css（token 基础层）→ 预设额外层。
 // v1 仅一个 preset：default（原 plain 迁移；minimal / humanist 已彻底移除）。
 export const POIM_PRESETS: PoimPreset[] = [
   { id: 'default', label: '默认', html: BASE_HTML, css: `${tokensRaw}${defaultRaw}` },

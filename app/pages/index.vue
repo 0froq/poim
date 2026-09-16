@@ -10,7 +10,6 @@ const preview = ref<{
 } | null>(null)
 const copied = shallowRef(false)
 const pngUrl = shallowRef('')
-const editorTab = shallowRef<'html' | 'css'>('css')
 
 // 快照必须可移植（合同 §5）：把预览里相对 /api/media?url= 补成绝对同源 URL，
 // 不污染预览 DOM（克隆后改写）。data:/http(s) 原样保留。
@@ -35,6 +34,8 @@ function mediaFileName(raw: string): string {
 }
 
 async function copyEmbed(): Promise<void> {
+  if (!gen.ready)
+    return
   const card = preview.value?.getInnerCard()
   const css = preview.value?.combinedCss()
   if (!card || !css)
@@ -55,6 +56,8 @@ async function copyEmbed(): Promise<void> {
 }
 
 async function downloadPng(): Promise<void> {
+  if (!gen.ready)
+    return
   const card = preview.value?.getInnerCard()
   if (!card)
     return
@@ -103,7 +106,7 @@ const hasMotion = computed(() =>
           un-leading-6
           un-text-muted
         >
-          贴 X 链接，或手填。导出 Web Component 快照与 PNG。v1 只跑通 X。
+          贴 X 链接，导出 Web Component 快照与 PNG。v1 只跑通 X。
         </p>
       </div>
 
@@ -163,38 +166,6 @@ const hasMotion = computed(() =>
         </p>
       </div>
 
-      <!-- 手填 -->
-      <fieldset
-        :disabled="gen.formLocked"
-        un-m-0
-        un-border-0
-        un-p-0
-        un-space-y-5
-      >
-        <legend
-          class="poim-label"
-          un-mb-2
-        >
-          {{ gen.formLocked ? '已从 URL 锁定' : '手填' }}
-        </legend>
-        <input
-          v-model="gen.post.author.name"
-          class="poim-field"
-          placeholder="显示名"
-        >
-        <input
-          v-model="gen.post.author.handle"
-          class="poim-field"
-          placeholder="@handle"
-        >
-        <textarea
-          v-model="gen.post.text"
-          class="poim-textarea"
-          rows="5"
-          placeholder="正文"
-        />
-      </fieldset>
-
       <!-- 卡片设置 -->
       <div>
         <p
@@ -242,57 +213,6 @@ const hasMotion = computed(() =>
           </button>
         </div>
       </div>
-
-      <!-- 高级：HTML / CSS -->
-      <div>
-        <button
-          type="button"
-          class="poim-btn poim-btn--ghost"
-          @click="gen.advanced = !gen.advanced"
-        >
-          {{ gen.advanced ? '收起 HTML / CSS' : '高级：编辑 HTML / CSS' }}
-        </button>
-
-        <div
-          v-if="gen.advanced"
-          class="poim-panel"
-          un-mt-3
-          un-overflow-hidden
-        >
-          <div class="poim-tabs">
-            <button
-              type="button"
-              class="poim-tab"
-              :class="{ 'poim-tab--active': editorTab === 'css' }"
-              :aria-pressed="editorTab === 'css'"
-              @click="editorTab = 'css'"
-            >
-              CSS
-            </button>
-            <button
-              type="button"
-              class="poim-tab"
-              :class="{ 'poim-tab--active': editorTab === 'html' }"
-              :aria-pressed="editorTab === 'html'"
-              @click="editorTab = 'html'"
-            >
-              HTML
-            </button>
-          </div>
-          <ClientOnly>
-            <CodeEditor
-              v-if="editorTab === 'css'"
-              v-model="gen.userCss"
-              lang="css"
-            />
-            <CodeEditor
-              v-else
-              v-model="gen.userHtml"
-              lang="html"
-            />
-          </ClientOnly>
-        </div>
-      </div>
     </section>
 
     <!-- 右栏：预览台面 + 导出 -->
@@ -306,16 +226,24 @@ const hasMotion = computed(() =>
         <div class="stage-frame">
           <ClientOnly>
             <CardPreview
+              v-if="gen.ready"
               ref="preview"
               :post="gen.post"
-              :html="gen.htmlLocked"
-              :user-css="gen.userCss"
+              :html="gen.preset.html"
               :preset-css="gen.preset.css"
               :theme="gen.theme"
               :show-brand="gen.showBrand"
               :show-metrics="gen.showMetrics"
               :show-fetched-at="gen.showFetchedAt"
             />
+            <p
+              v-else
+              un-text-sm
+              un-text-muted
+              un-p-6
+            >
+              贴一条 X 状态链接后在这里预览
+            </p>
             <template #fallback>
               <p
                 un-text-sm
@@ -346,6 +274,7 @@ const hasMotion = computed(() =>
         <button
           type="button"
           class="poim-btn poim-btn--ink"
+          :disabled="!gen.ready"
           @click="copyEmbed"
         >
           {{ copied ? '已复制' : '复制 Web Component' }}
@@ -353,6 +282,7 @@ const hasMotion = computed(() =>
         <button
           type="button"
           class="poim-btn"
+          :disabled="!gen.ready"
           @click="downloadPng"
         >
           下载 PNG

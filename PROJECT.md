@@ -16,13 +16,11 @@ Hermes Kanban 的 `poim` board 是产品开发执行层，不属于研究项目�
 
 - **谁用**：任何人打开即可用。无登录、无用户配额。早期不推广，按公开产品来建。
 - **不是什么**：不是 AI 生成，不是官方 X widget 套壳，不是稳定热链 CDN。
-- **两种输入**
-  - **URL**：锁定手填区；卡片始终标记 `Fetched from X`。抓取时间是可选附属信息：关闭显示时只隐藏时间戳，不隐藏来源标记。
-  - **手填**：无上述来源标记。
-- **两种输出**
+- **输入**：只接受 X 状态 URL。不提供手填，不提供 HTML / CSS 编辑。
+- **输出**
   - **Web Component 快照**（主交付）：自包含，嵌入页不强制回拉本站。
   - **PNG**：与当时预览 DOM **同一套卡片** 截图，不是平台截图、也不是第二套排版引擎（Satori）。
-- **v1 平台**：只跑通 **X**。表单占位（disabled）：YouTube、Bilibili、小红书。贴非 X 链接 → 明确失败，不当手填。
+- **v1 平台**：只跑通 **X**。表单占位（disabled）：YouTube、Bilibili、小红书。贴非 X 链接 → 明确失败。
 
 帖子边界：单条 + 多图 + 视频/GIF + **一层引用**。不做整楼线程、不做 Articles。回复当普通单条。
 
@@ -32,7 +30,7 @@ Hermes Kanban 的 `poim` board 是产品开发执行层，不属于研究项目�
 
 ## 2. 视觉：设计师自主，保留架构约束
 
-应用壳（生成器页面、导航、表单、编辑器外围）与卡片**都**由 Poim Designer 负责设计，**不强制继承 0froq.github.io 的样式**。设计师在品牌与技术边界内自由发挥视觉语言；个人站只作为可参考的基线之一，不是模板。
+应用壳（生成器页面、导航、表单）与卡片**都**由 Poim Designer 负责设计，**不强制继承 0froq.github.io 的样式**。设计师在品牌与技术边界内自由发挥视觉语言；个人站只作为可参考的基线之一，不是模板。
 
 硬约束（架构性，不随视觉风格变化）：
 
@@ -70,9 +68,8 @@ UnoCSS 习惯与个人站一致：`presetWind4`、attributify **`un-` 前缀**�
 
 1. 预设 HTML 模板
 2. 预设 CSS（**必须走** `--poim-*` 变量，以便浅深生效）
-3. **用户 CSS 永远叠在最上面**（不 fork 预设；换预设不会自动清用户 CSS，若冲突由用户自己改）
 
-用户可改 HTML 布局。槽位契约：
+槽位契约（生成器填入，用户不改 HTML）：
 
 - 首选 `data-poim="<slot>"`；也认同名 `id`。
 - **填入节点，不删标签。**
@@ -83,13 +80,9 @@ UnoCSS 习惯与个人站一致：`presetWind4`、attributify **`un-` 前缀**�
 
 HTML 消毒（DOMPurify 白名单）：`div/span/p/a/img/video/picture/source/h1-h3/ul/ol/li/blockquote/figure/figcaption/time/strong/em/br` + `data-poim` / `class` / `style`。禁 `script`、事件属性、`iframe`、`object`、`form`。`a[href]` 仅 `http(s)`。
 
-用户 CSS：禁 `@import`；禁外部 `url()` 字体/图；`url()` 仅 data 或同源代理。动画允许；截 PNG 取当前帧。
+设置面板只保留与实际输出有关的控制（浅深、品牌、指标、抓取时间）。
 
-设置面板只保留与实际输出有关的控制（例如 metadata 显示开关与 HTML/CSS 编辑入口）；移除无效的「样式、色、字体、圆角」可视化 token 配置区域。
-
-编辑器为 **lazy CodeMirror 6**（HTML / CSS 分 tab）。它必须在展开后可见、可输入、可切 tab；不上 Monaco 主包。
-
-导出 WC：Shadow DOM 内写入消毒 HTML + 冻住的预设 CSS + 用户 CSS + 当时 `data-theme` + 规范 JSON。
+导出 WC：Shadow DOM 内写入消毒 HTML + 冻住的预设 CSS + 当时 `data-theme` + 规范 JSON。
 
 ---
 
@@ -134,7 +127,7 @@ interface PoimMedia {
 }
 ```
 
-`metrics`：URL 拉取则带，手填可空。文本 v1 当纯文本保留换行；不做 hashtag/mention 富解析（URL 可当普通链接）。不要把整段 MP4 塞进 HTML。
+`metrics`：URL 拉取则带。文本 v1 当纯文本保留换行；不做 hashtag/mention 富解析（URL 可当普通链接）。不要把整段 MP4 塞进 HTML。
 
 ---
 

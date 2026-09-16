@@ -8,4 +8,4 @@ pnpm dev
 pnpm test
 ```
 
-v1：打开首页，贴 `https://x.com/{user}/status/{id}`，或手填后复制 embed / 下载 PNG。
+v1：打开首页，贴 `https://x.com/{user}/status/{id}`，复制 embed / 下载 PNG。

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { CARD_CASES } from '~~/shared/fixtures/card-cases'
 import { getPreset } from '~~/shared/utils/presets'
-import userCssSeed from '~/assets/css/card/user.css?raw'
 import CardPreview from '~/components/CardPreview.vue'
 
 useHead({
@@ -76,7 +75,6 @@ const theme = shallowRef<'light' | 'dark'>('light')
               <CardPreview
                 :post="item.post"
                 :html="preset.html"
-                :user-css="userCssSeed"
                 :preset-css="preset.css"
                 :theme="theme"
                 :show-brand="true"

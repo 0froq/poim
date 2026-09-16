@@ -8,15 +8,17 @@ import { sanitizeHtmlFragment } from '~~/shared/utils/sanitize-html'
 interface Props {
   post: PoimPost
   html: string
-  userCss: string
   presetCss: string
   theme: PoimTheme
   showBrand: boolean
   showMetrics?: boolean
   showFetchedAt?: boolean
+  userCss?: string
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  userCss: '',
+})
 const stageRef = ref<HTMLElement | null>(null)
 
 function combinedCss(): string {
