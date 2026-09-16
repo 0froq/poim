@@ -31,10 +31,11 @@ export default defineNuxtConfig({
     },
   },
   nitro: {
+    // Pages Git 构建默认 cloudflare-pages（产物 dist/）；NITRO_PRESET 可覆盖。
+    preset: process.env.NITRO_PRESET || 'cloudflare-pages',
     // Nitro 的 rollup 没有 Vite 的 asset 插件：shared/utils/presets.ts 里的 *.css?raw
     // 会被当作字面文件路径导致 ENOENT。这里用一个最小 rollup 插件复刻 Vite 的 ?raw 语义
     // （export default "文件内容"），保证 SSR bundle 也能解析出冻结的 CSS 文本。
-    ...(process.env.NITRO_PRESET ? { preset: process.env.NITRO_PRESET } : {}),
     rollupConfig: {
       plugins: [
         {
