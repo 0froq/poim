@@ -55,6 +55,7 @@ describe('预设与合同白名单', () => {
       'text',
       'media',
       'metrics',
+      'reply',
       'badge',
       'brand',
     ]
@@ -62,9 +63,21 @@ describe('预设与合同白名单', () => {
       for (const slot of requiredSlots) {
         expect(preset.html, `${preset.id} 缺槽位 ${slot}`).toContain(`data-poim="${slot}"`)
       }
-      // quote 是空容器，默认 hidden
+      // quote 与主帖同一套头栏：header + avatar + 块级 name/handle
       expect(preset.html).toContain('data-poim="quote"')
       expect(preset.html).toContain('hidden')
+      const quote = new DOMParser().parseFromString(preset.html, 'text/html').querySelector('[data-poim="quote"]')
+      expect(quote).toBeTruthy()
+      expect(quote!.querySelector('.poim-header')).toBeTruthy()
+      expect(quote!.querySelector('[data-poim="author-avatar"]')?.classList.contains('poim-avatar')).toBe(true)
+      expect(quote!.querySelector('[data-poim="author-name"]')?.tagName).toBe('DIV')
+      expect(quote!.querySelector('[data-poim="author-handle"]')?.tagName).toBe('DIV')
+      expect(quote!.querySelector('[data-poim="media"]')?.classList.contains('poim-media')).toBe(true)
+      expect(quote!.querySelector('.poim-quote-inner')).toBeNull()
+      const reply = new DOMParser().parseFromString(preset.html, 'text/html').querySelector('[data-poim="reply"]')
+      expect(reply?.classList.contains('poim-flow')).toBe(true)
+      expect(reply?.querySelector('.poim-header')).toBeTruthy()
+      expect(reply?.querySelector('[data-poim="media"]')).toBeTruthy()
     }
   })
 
@@ -121,6 +134,31 @@ describe('预设 CSS 外置 .css 文件（构建链追踪）', () => {
     expect(block).toMatch(/width:\s*640px/)
     expect(block).toMatch(/min-width:\s*640px/)
     expect(block).toMatch(/max-width:\s*none/)
+  })
+
+  it('单图按原比例完整显示，不被 max-height + cover 裁切', () => {
+    const mediaBlock = tokensRaw.match(/\.poim-image,\s*\n\.poim-video\s*\{[\s\S]*?\}/)?.[0]
+    expect(mediaBlock).toBeTruthy()
+    expect(mediaBlock).toMatch(/width:\s*100%/)
+    expect(mediaBlock).toMatch(/height:\s*auto/)
+    expect(mediaBlock).toMatch(/object-fit:\s*contain/)
+    expect(mediaBlock).not.toMatch(/max-height/)
+    expect(mediaBlock).not.toMatch(/object-fit:\s*cover/)
+
+    expect(tokensRaw).toMatch(/data-mosaic='grid2x2'/)
+    expect(tokensRaw).toMatch(/\.poim-media\[data-mosaic='grid2x2'\] \.poim-image[\s\S]*object-fit:\s*cover/)
+    expect(tokensRaw).not.toMatch(/\.poim-media\[data-count=/)
+  })
+
+  it('引用不把 handle 写成行内附加边距，头栏沿用主帖结构', () => {
+    expect(tokensRaw).not.toMatch(/\.poim-quote \.poim-handle\s*\{[^}]*margin-left/)
+  })
+
+  it('回复连线走头像列，正文收到名字列，不和线重叠', () => {
+    expect(tokensRaw).toMatch(/\.poim-flow::after\s*\{[^}]*left:\s*1\.25rem/)
+    expect(tokensRaw).toMatch(/\.poim-flow::after\s*\{[^}]*top:\s*calc\(2\.5rem \+ 2px\)/)
+    expect(tokensRaw).toMatch(/\.poim-flow::after\s*\{[^}]*z-index:\s*0/)
+    expect(tokensRaw).toMatch(/\.poim-flow \.poim-text[\s\S]*?margin-left:\s*3\.25rem/)
   })
 })
 

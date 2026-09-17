@@ -1,5 +1,6 @@
 import type { PoimMedia, PoimPost } from '../../shared/types/post'
 import { createError, H3Error } from 'h3'
+import { emptyPost } from '../../shared/utils/empty-post'
 
 /**
  * X 帖子解析：FxEmbed 主、syndication 备（v1 不接官方 X API）。
@@ -35,6 +36,10 @@ export interface FxTweet {
   replies?: number
   views?: number | null
   quote?: FxTweet
+  replying_to?: string | null
+  /** 被回复帖的 snowflake；有则再拉一层原帖体。 */
+  replying_to_status?: string | number | null
+  reposted_by?: FxAuthor | null
   media?: {
     photos?: FxMediaItem[]
     videos?: FxMediaItem[]
@@ -72,7 +77,7 @@ async function fetchJson(url: string): Promise<unknown> {
       headers: { 'accept': 'application/json', 'user-agent': 'poim/0.1' },
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     })
-    if (res.status === 404)
+    if (res.status === 404 || res.status === 401)
       throw notFound()
     if (!res.ok)
       throw unavailable()
@@ -157,6 +162,16 @@ export function mapFxTweet(tweet: FxTweet, source: PoimPost['source']): PoimPost
       replies: tweet.replies,
       views: tweet.views ?? undefined,
     },
+  }
+  const replyHandle = asHandle(tweet.replying_to)
+  if (replyHandle)
+    post.replyToHandle = replyHandle
+  if (tweet.reposted_by) {
+    post.repostedBy = {
+      name: tweet.reposted_by.name ?? '',
+      handle: tweet.reposted_by.screen_name ?? '',
+      avatar: tweet.reposted_by.avatar_url,
+    }
   }
   // 契约：只保留一层引用（quote）
   if (tweet.quote)
@@ -244,16 +259,16 @@ export async function fetchSyndicationTweet(id: string): Promise<FxTweet> {
   return mapSyndicationTweet(body)
 }
 
-export async function resolveXTweet(id: string): Promise<PoimPost> {
+async function resolveRawTweet(id: string): Promise<FxTweet> {
   try {
-    return mapFxTweet(await fetchFxTweet(id), 'url')
+    return await fetchFxTweet(id)
   }
   catch (error) {
     // FxEmbed 明确 404（删除/私密）是权威结论，不再回落 syndication
     if (isFailure(error, 'not_found'))
       throw error
     try {
-      return mapFxTweet(await fetchSyndicationTweet(id), 'url')
+      return await fetchSyndicationTweet(id)
     }
     catch (fallbackError) {
       if (isFailure(fallbackError, 'not_found'))
@@ -262,4 +277,80 @@ export async function resolveXTweet(id: string): Promise<PoimPost> {
       throw unavailable()
     }
   }
+}
+
+function asHandle(raw: unknown): string | undefined {
+  if (typeof raw !== 'string')
+    return undefined
+  const handle = raw.replace(/^@/, '').trim()
+  return handle || undefined
+}
+
+function asStatusId(raw: unknown): string | undefined {
+  if (raw == null || raw === '')
+    return undefined
+  const id = String(raw).trim()
+  return id || undefined
+}
+
+function stubParentPost(handle?: string, id?: string): PoimPost {
+  const post = emptyPost()
+  post.source = 'url'
+  post.id = id
+  const h = handle ?? ''
+  post.author = { name: h, handle: h }
+  post.text = ''
+  post.media = []
+  return post
+}
+
+async function fetchFxUser(handle: string): Promise<FxAuthor | null> {
+  try {
+    const body = await fetchJson(`https://api.fxtwitter.com/${encodeURIComponent(handle)}`) as { user?: FxAuthor | null }
+    return body.user ?? null
+  }
+  catch {
+    return null
+  }
+}
+
+async function resolveParentPost(tweet: FxTweet, childId: string): Promise<PoimPost | undefined> {
+  const handle = asHandle(tweet.replying_to)
+  const parentId = asStatusId(tweet.replying_to_status)
+  if (!handle && !parentId)
+    return undefined
+  if (parentId && parentId !== childId) {
+    try {
+      const parentTweet = await resolveRawTweet(parentId)
+      return mapFxTweet({
+        ...parentTweet,
+        replying_to: undefined,
+        replying_to_status: undefined,
+      }, 'url')
+    }
+    catch {
+      // 私密/删除：仍用同宽流画出原帖作者
+    }
+  }
+  const stub = stubParentPost(handle, parentId)
+  if (handle) {
+    const user = await fetchFxUser(handle)
+    if (user) {
+      stub.author = {
+        name: user.name || handle,
+        handle: user.screen_name || handle,
+        avatar: user.avatar_url,
+      }
+    }
+  }
+  return stub
+}
+
+export async function resolveXTweet(id: string): Promise<PoimPost> {
+  const tweet = await resolveRawTweet(id)
+  const post = mapFxTweet(tweet, 'url')
+  const parent = await resolveParentPost(tweet, post.id ?? id)
+  if (parent)
+    post.replyTo = parent
+  return post
 }

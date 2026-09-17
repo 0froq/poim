@@ -29,7 +29,7 @@ poim 的产品直觉：**帖子是纸，卡片是纸片**。一个平台帖子�
 
 - **EB Garamond**（衬线）：标题与引用主体。有文气、有字重对比，适合「摘录/引用」的产品气质。
 - **Instrument Sans**（无衬线）：正文与界面。几何但带人文曲线，不是 Inter 那种系统蓝按钮的观感。
-- 全部通过 token 暴露（用户 CSS 可整体替换字体栈）。
+- 全部通过 token 暴露。
 
 ## 3. 单预设 `default`（RE-11）
 
@@ -50,7 +50,7 @@ poim 的产品直觉：**帖子是纸，卡片是纸片**。一个平台帖子�
 
 - 平台 X 标识及 likes / replies / reposts / views 均使用**无障碍文本标签的图标**（`role="img"` + `aria-label`），不以可见自然语言作为主 UI；图标为系统生成的 inline SVG，在消毒之后由 `fillTemplate` 注入槽位。
 - 发帖时间与抓取时间用稳定国际格式 `YYYY-MM-DD`（必要时 `YYYY-MM-DD HH:mm`），不出现中文年月日。
-- URL 卡的 `Fetched from X` 来源行**始终可见**；`showFetchedAt` 只控制其时间戳子节点（`.poim-fetched-at`）。手填卡无来源行。
+- URL 卡的 `Fetched from X` 来源行**始终可见**；`showFetchedAt` 只控制其时间戳子节点（`.poim-fetched-at`）。
 
 ## 4. 叠层与消毒
 
@@ -58,18 +58,22 @@ poim 的产品直觉：**帖子是纸，卡片是纸片**。一个平台帖子�
 
 1. 预设 HTML 模板
 2. 预设 CSS（全走 `--poim-*`，浅深才生效）
-3. **用户 CSS 永远叠在最上层**（不 fork 预设）
 
-> RE-11 已移除可视化 token 覆盖层（样式 / 色 / 字体 / 圆角编辑 UI 与 `card-tokens.ts`）；设置面板只保留与实际输出有关的控制（metadata 显示开关与 HTML/CSS 编辑入口）。
+> 生成器不提供 HTML / CSS 编辑；设置面板只保留 metadata 显示开关。
 
 - **结构标签用 `div` 不用 `article/header/footer/section`**：合同 HTML 消毒白名单不含语义标签（见 `sanitize-html.ts` 与 `presets.test.ts`），用 div 保证消毒后结构不塌。语义由 class 承担。
-- 槽位：`data-poim="<slot>"` 首选，认同名 `id`；填入节点不删标签；`media`/`quote` 是空容器，无引用时 `hidden`。
+- 槽位：`data-poim="<slot>"` 首选，认同名 `id`；填入节点不删标签；`media`/`reply`/`quote` 是空容器，无回复/引用时 `hidden`。
+- **引用头栏与主帖同一套 DOM**：`.poim-header` + `.poim-avatar` + `.poim-author`（块级 name/handle）。引用内可再填一层 `media`。
+- **回复是同宽流**（`.poim-flow`）：原帖在上、当前回复在下，同一内容宽度，左侧细线串起来。原帖体拉不到时仍画出原帖作者头栏，不改成「回复 @handle」行。
+- **转贴/引用是镶嵌**（`.poim-embed` / `.poim-quote`）：虚线框 + 略深底，不是流。
+- **多图拼图**：X 时间线四图横滑；本产品导出静态图，所以 2=并排、3=左大右叠、4=2×2，高度由 `planMediaMosaic` 按比例夹紧。单图仍 `height:auto` + contain。
 - 消毒只放行 `data-poim`，其余 `data-*` 剥掉（hook 实现，见 `sanitize-html.ts` 注释）。
 
 ## 5. 已知取舍
 
 - **卡片平整化**：v1 合同 2026-08-16 收紧——卡片本体零 rotate / transform，倾角移除（原 `-0.35°` 微倾）。阴影保留承担体量感；动势仍是静态样式，不引入动画。
-- **灰阶优先**：v1 预设不引入品牌色，把色彩留给用户 CSS 层。
-- **固定 640px**：预览台面窄屏横向滚动（`.stage-frame` overflow-x），PNG 截图尺寸与预览一致。
+- **灰阶优先**：v1 预设不引入品牌色。
+- **固定 640px**：预览台面仅在窄于卡片时横向滚动（`.stage-frame` overflow-x），PNG 截图尺寸与预览一致。
+- **单图按原比例完整显示**：`.poim-image` / `.poim-video` 为 `width:100%; height:auto; object-fit:contain`，不设 `max-height` + `cover`（否则竖长截图会被砍高、内容被裁）。多图 2/4 宫格仍 `cover` 成格。
 - **手绘已移除**：froQ 2026-08-15 锁合同——手绘预设 v1 不做，整体视觉不走手绘风，Rough.js 不用于卡片（PROJECT.md 第 3 节）。
 - **未来新增模板**须用可验证的设计系统语义命名（Cupertino / Material / Fluent 等），不得用「简洁」「人文」等抽象气质词（PROJECT.md §3）。

@@ -6,6 +6,7 @@ const SLOT_NAMES = [
   'text',
   'media',
   'metrics',
+  'reply',
   'quote',
   'badge',
   'brand',

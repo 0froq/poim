@@ -30,12 +30,6 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "catalog:dev",
-    "@codemirror/commands": "catalog:frontend",
-    "@codemirror/lang-css": "catalog:frontend",
-    "@codemirror/lang-html": "catalog:frontend",
-    "@codemirror/state": "catalog:frontend",
-    "@codemirror/theme-one-dark": "catalog:frontend",
-    "@codemirror/view": "catalog:frontend",
     "@iconify-json/carbon": "catalog:dev",
     "@iconify-json/solar": "catalog:dev",
     "@nuxt/eslint": "catalog:dev",

@@ -11,6 +11,7 @@ describe('槽位白名单', () => {
       'text',
       'media',
       'metrics',
+      'reply',
       'quote',
       'badge',
       'brand',

@@ -2,6 +2,7 @@ import type { FillContext } from './fill-template'
 import { describe, expect, it } from 'vitest'
 import { emptyPost } from './empty-post'
 import { fillTemplate } from './fill-template'
+import { getPreset } from './presets'
 import { serializePoimEmbed } from './serialize-embed'
 
 describe('fillTemplate', () => {
@@ -24,6 +25,142 @@ describe('fillTemplate', () => {
     fillTemplate(root, post, { mediaSrc: u => u })
     expect(root.querySelector('[data-poim="author-name"]')?.textContent).toBe('jack')
     expect((root.querySelector('[data-poim="quote"]') as HTMLElement).hidden).toBe(true)
+  })
+
+  it('引用帖与主帖共用头像 / 名字 / handle 头栏，互不串槽', () => {
+    document.body.innerHTML = getPreset('default').html
+    const root = document.querySelector('.poim-card') as HTMLElement
+    const post = emptyPost()
+    post.author = {
+      name: 'Main',
+      handle: 'main',
+      avatar: 'https://pbs.twimg.com/profile_images/main.jpg',
+    }
+    post.text = 'outer'
+    const quoted = emptyPost()
+    quoted.author = {
+      name: 'Quoted',
+      handle: 'quoted',
+      avatar: 'https://pbs.twimg.com/profile_images/quoted.jpg',
+    }
+    quoted.text = 'inner'
+    post.quote = quoted
+    fillTemplate(root, post, { mediaSrc: u => `/p?${u}` })
+
+    const header = root.querySelector(':scope > .poim-header')!
+    expect(header.querySelector('[data-poim="author-name"]')?.textContent).toBe('Main')
+    expect(header.querySelector('[data-poim="author-handle"]')?.textContent).toBe('@main')
+    expect((header.querySelector('[data-poim="author-avatar"]') as HTMLImageElement).src).toContain('main.jpg')
+
+    const quote = root.querySelector('[data-poim="quote"]') as HTMLElement
+    expect(quote.hidden).toBe(false)
+    const qHeader = quote.querySelector('.poim-header')!
+    expect(qHeader.querySelector('[data-poim="author-name"]')?.tagName).toBe('DIV')
+    expect(qHeader.querySelector('[data-poim="author-handle"]')?.tagName).toBe('DIV')
+    expect(qHeader.querySelector('[data-poim="author-name"]')?.textContent).toBe('Quoted')
+    expect(qHeader.querySelector('[data-poim="author-handle"]')?.textContent).toBe('@quoted')
+    expect((qHeader.querySelector('[data-poim="author-avatar"]') as HTMLImageElement).src).toContain('quoted.jpg')
+    expect(quote.querySelector('[data-poim="text"]')?.textContent).toBe('inner')
+  })
+
+  it('引用内媒体与主帖媒体互不覆盖；转发把原帖镶嵌', () => {
+    document.body.innerHTML = getPreset('default').html
+    const root = document.querySelector('.poim-card') as HTMLElement
+    const post = emptyPost()
+    post.author = { name: 'Main', handle: 'main', avatar: 'https://pbs.twimg.com/profile_images/main.jpg' }
+    post.text = 'outer'
+    post.media = [{ type: 'image', url: 'https://pbs.twimg.com/media/main.jpg' }]
+    post.repostedBy = { name: 'Fwd', handle: 'fwd' }
+    const quoted = emptyPost()
+    quoted.author = { name: 'Quoted', handle: 'quoted', avatar: 'https://pbs.twimg.com/profile_images/quoted.jpg' }
+    quoted.text = 'inner'
+    quoted.media = [{ type: 'image', url: 'https://pbs.twimg.com/media/quoted.jpg' }]
+    post.quote = quoted
+    fillTemplate(root, post, { mediaSrc: u => u })
+
+    const embed = root.querySelector(':scope > .poim-embed') as HTMLElement
+    expect(embed).toBeTruthy()
+    const mainMedia = embed.querySelector(':scope > [data-poim="media"]') as HTMLElement
+    const quoteMedia = embed.querySelector('[data-poim="quote"] [data-poim="media"]') as HTMLElement
+    expect(mainMedia.hidden).toBe(false)
+    expect(quoteMedia.hidden).toBe(false)
+    expect((mainMedia.querySelector('img') as HTMLImageElement).src).toContain('main.jpg')
+    expect((quoteMedia.querySelector('img') as HTMLImageElement).src).toContain('quoted.jpg')
+    expect(root.querySelector(':scope > .poim-repost')?.textContent).toBe('Fwd 转发了')
+    expect(root.querySelector(':scope > .poim-reply-to')).toBeNull()
+  })
+
+  it('回复把原帖画成同宽流，而不是镶嵌', () => {
+    document.body.innerHTML = getPreset('default').html
+    const root = document.querySelector('.poim-card') as HTMLElement
+    const post = emptyPost()
+    post.author = { name: 'Kid', handle: 'kid' }
+    post.text = 'reply body'
+    const parent = emptyPost()
+    parent.author = { name: 'Parent', handle: 'parent', avatar: 'https://pbs.twimg.com/profile_images/p.jpg' }
+    parent.text = 'original'
+    parent.media = [{ type: 'image', url: 'https://pbs.twimg.com/media/orig.jpg' }]
+    post.replyTo = parent
+    fillTemplate(root, post, { mediaSrc: u => u })
+
+    const flow = root.querySelector('[data-poim="reply"]') as HTMLElement
+    expect(flow.hidden).toBe(false)
+    expect(flow.classList.contains('poim-flow')).toBe(true)
+    expect(flow.querySelector('[data-poim="author-name"]')?.textContent).toBe('Parent')
+    expect(flow.querySelector('[data-poim="text"]')?.textContent).toBe('original')
+    expect((flow.querySelector('[data-poim="media"] img') as HTMLImageElement).src).toContain('orig.jpg')
+    expect(root.querySelector(':scope > .poim-header [data-poim="author-name"]')?.textContent).toBe('Kid')
+    expect(root.querySelector(':scope > .poim-embed:not([data-poim])')).toBeNull()
+    expect(root.querySelector('.poim-reply-to')).toBeNull()
+  })
+
+  it('没有原帖体时仍把原帖作者放在上方同宽流', () => {
+    document.body.innerHTML = getPreset('default').html
+    const root = document.querySelector('.poim-card') as HTMLElement
+    const post = emptyPost()
+    post.author = { name: 'Kid', handle: 'kid' }
+    post.text = 'reply body'
+    post.replyToHandle = 'parent'
+    fillTemplate(root, post, { mediaSrc: u => u })
+    const flow = root.querySelector('[data-poim="reply"]') as HTMLElement
+    expect(flow.hidden).toBe(false)
+    expect(flow.querySelector('[data-poim="author-handle"]')?.textContent).toBe('@parent')
+    expect((flow.querySelector('[data-poim="text"]') as HTMLElement).hidden).toBe(true)
+    expect(root.querySelector(':scope > .poim-header [data-poim="author-name"]')?.textContent).toBe('Kid')
+    expect(root.querySelector('.poim-reply-to')).toBeNull()
+  })
+
+  it('转发 + 引用时把主帖连同引用一起镶嵌，不把引用槽当成转发壳', () => {
+    document.body.innerHTML = getPreset('default').html
+    const root = document.querySelector('.poim-card') as HTMLElement
+    const post = emptyPost()
+    post.author = { name: 'Main', handle: 'main' }
+    post.text = 'outer'
+    post.repostedBy = { name: 'Fwd', handle: 'fwd' }
+    const quoted = emptyPost()
+    quoted.author = { name: 'Quoted', handle: 'quoted' }
+    quoted.text = 'inner'
+    post.quote = quoted
+    fillTemplate(root, post, { mediaSrc: u => u })
+
+    const embed = root.querySelector(':scope > .poim-embed:not([data-poim])') as HTMLElement
+    expect(embed).toBeTruthy()
+    expect(embed.querySelector(':scope > .poim-header [data-poim="author-name"]')?.textContent).toBe('Main')
+    expect(embed.querySelector('[data-poim="quote"] [data-poim="text"]')?.textContent).toBe('inner')
+  })
+
+  it('两张图写 mosaic=row2 并锁高度', () => {
+    document.body.innerHTML = getPreset('default').html
+    const root = document.querySelector('.poim-card') as HTMLElement
+    const post = emptyPost()
+    post.media = [
+      { type: 'image', url: 'https://pbs.twimg.com/media/a.jpg', width: 1200, height: 675 },
+      { type: 'image', url: 'https://pbs.twimg.com/media/b.jpg', width: 720, height: 1600 },
+    ]
+    fillTemplate(root, post, { mediaSrc: u => u })
+    const media = root.querySelector(':scope > [data-poim="media"]') as HTMLElement
+    expect(media.dataset.mosaic).toBe('row2')
+    expect(media.style.getPropertyValue('--poim-mosaic-h')).toMatch(/px$/)
   })
 })
 

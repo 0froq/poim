@@ -7,7 +7,7 @@ export interface SerializeEmbedOptions {
   post: PoimPost
 }
 
-// 导出快照：Shadow DOM 内 = 消毒 HTML + 冻住的预设 CSS + 用户 CSS + 当时 data-theme + 规范 JSON。
+// 导出快照：Shadow DOM 内 = 消毒 HTML + 冻住的预设 CSS + 当时 data-theme + 规范 JSON。
 // 声明式 Shadow DOM，嵌入页零 JS、不加载 Nuxt。data-theme 冻死导出当时值，不跟嵌入页主题跑。
 export function serializePoimEmbed(options: SerializeEmbedOptions): string {
   const { innerHTML, css, theme, post } = options
