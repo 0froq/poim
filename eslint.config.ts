@@ -6,7 +6,7 @@ export default antfu({
   typescript: true,
   vue: true,
   // PROJECT.md 是用户维护的合同文件，不做格式改写
-  ignores: ['PROJECT.md'],
+  ignores: ['PROJECT.md', '.agents/**'],
   rules: {
     'vue/max-attributes-per-line': ['error', {
       singleline: { max: 1 },

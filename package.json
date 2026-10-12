@@ -4,11 +4,19 @@
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@10.15.0",
+  "engines": {
+    "node": ">=22.18.0"
+  },
   "scripts": {
     "dev": "nuxt dev",
     "build": "nuxt build",
     "generate": "nuxt generate",
+    "cf:build": "pnpm generate && wrangler build --experimental-new-config --x-cf-build-output",
+    "deploy": "pnpm cf:build && cf deploy --prebuilt",
     "preview": "nuxt preview",
+    "preview:deploy": "pnpm cf:build && cf previews deploy --prebuilt",
+    "worker:dev": "wrangler dev --local --experimental-new-config",
+    "worker:typecheck": "tsc -p worker/tsconfig.json",
     "lint": "eslint . --cache --concurrency=auto",
     "lint:fix": "eslint . --cache --concurrency=auto --fix",
     "test": "vitest run",
@@ -30,6 +38,7 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "catalog:dev",
+    "@cloudflare/workers-types": "catalog:dev",
     "@iconify-json/carbon": "catalog:dev",
     "@iconify-json/solar": "catalog:dev",
     "@nuxt/eslint": "catalog:dev",
@@ -42,6 +51,7 @@
     "@unocss/preset-wind4": "catalog:dev",
     "@unocss/transformer-directives": "catalog:dev",
     "@unocss/transformer-variant-group": "catalog:dev",
+    "cf": "catalog:dev",
     "eslint": "catalog:dev",
     "eslint-plugin-format": "catalog:dev",
     "happy-dom": "catalog:dev",
