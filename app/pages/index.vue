@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { ChoiceOption } from '@froq/ui'
+import type { PoimTheme } from '~~/shared/types/post'
+import { Button, Choice, TextInput, Toggle } from '@froq/ui'
 import { domToPng } from 'modern-screenshot'
 import { absolutizeProxyUrl, toProxyMediaUrl } from '~~/shared/utils/media-url'
 import { serializePoimEmbed } from '~~/shared/utils/serialize-embed'
@@ -10,6 +13,11 @@ const preview = ref<{
 } | null>(null)
 const copied = shallowRef(false)
 const pngUrl = shallowRef('')
+
+const cardThemeOptions: ChoiceOption<PoimTheme>[] = [
+  { value: 'light', label: '浅' },
+  { value: 'dark', label: '深' },
+]
 
 // 快照必须可移植（合同 §5）：把预览里相对 /api/media?url= 补成绝对同源 URL，
 // 不污染预览 DOM（克隆后改写）。data:/http(s) 原样保留。
@@ -86,215 +94,128 @@ const hasMotion = computed(() =>
 </script>
 
 <template>
-  <div class="gen-layout">
-    <!-- 左栏：输入与设置 -->
-    <section
-      un-space-y-8
-      un-min-w-0
-    >
+  <div class="tool">
+    <section class="tool-form">
       <div>
-        <h1
-          un-font-serif
-          un-text-3xl
-          un-text-ink
-        >
+        <h1 class="tool-title">
           做成一张卡片
         </h1>
-        <p
-          un-mt-2
-          un-text-sm
-          un-leading-6
-          un-text-muted
-        >
-          贴 X 链接，导出 Web Component 快照与 PNG。v1 只跑通 X。
+        <p class="tool-lede">
+          贴一条 X 状态链接，导出可嵌入的卡片和 PNG。
         </p>
       </div>
 
-      <!-- 平台选择 -->
-      <div class="poim-tabs">
-        <button
-          v-for="item in gen.placeholderPlatforms"
-          :key="item.id"
-          type="button"
-          class="poim-tab"
-          :class="[
-            gen.platform === item.id && item.enabled ? 'poim-tab--active' : '',
-            !item.enabled ? 'poim-tab--disabled' : '',
-          ]"
-          :aria-pressed="gen.platform === item.id && item.enabled"
-          :disabled="!item.enabled"
-          @click="item.enabled && (gen.platform = item.id)"
-        >
-          {{ item.label }}
-          <span
-            v-if="!item.enabled"
-            class="poim-tag"
-          >即将支持</span>
-        </button>
-      </div>
+      <TextInput
+        v-model="gen.url"
+        class="tool-url"
+        label="链接"
+        placeholder="https://x.com/name/status/…"
+        spellcheck="false"
+        autocomplete="off"
+        enterkeyhint="go"
+        :aria-invalid="gen.resolveError ? 'true' : undefined"
+      />
+      <p
+        v-if="gen.resolving"
+        class="tool-status"
+      >
+        正在拉取…
+      </p>
+      <p
+        v-else-if="gen.resolveError"
+        class="tool-status is-error"
+        role="alert"
+      >
+        {{ gen.resolveError }}
+      </p>
 
-      <!-- 链接 -->
-      <div>
-        <label
-          class="poim-label"
-          for="poim-url"
-        >
-          链接
-        </label>
-        <input
-          id="poim-url"
-          v-model="gen.url"
-          type="url"
-          class="poim-field poim-field--mono"
-          placeholder="https://x.com/name/status/…"
-        >
-        <p
-          v-if="gen.resolving"
-          un-mt-2
-          un-text-sm
-          un-text-muted
-        >
-          正在拉取…
-        </p>
-        <p
-          v-else-if="gen.resolveError"
-          un-mt-2
-          un-text-sm
-          un-text-danger
-        >
-          {{ gen.resolveError }}
-        </p>
-      </div>
-
-      <!-- 卡片设置 -->
-      <div>
-        <p
-          class="poim-label"
-          un-mb-2.5
-        >
-          卡片
-        </p>
-        <div
-          un-flex
-          un-flex-wrap
-          un-gap-2
-        >
-          <button
-            type="button"
-            class="poim-btn"
-            @click="gen.theme = gen.theme === 'light' ? 'dark' : 'light'"
-          >
-            卡片：{{ gen.theme === 'light' ? '浅' : '深' }}
-          </button>
-          <button
-            type="button"
-            class="poim-btn"
-            @click="gen.showBrand = !gen.showBrand"
-          >
-            {{ gen.showBrand ? '隐藏 poim' : '显示 poim' }}
-          </button>
-          <button
-            type="button"
-            class="poim-btn"
-            :class="{ 'poim-btn--active': gen.showMetrics }"
-            :aria-pressed="gen.showMetrics"
-            @click="gen.showMetrics = !gen.showMetrics"
-          >
-            {{ gen.showMetrics ? '隐藏指标' : '显示指标' }}
-          </button>
-          <button
-            type="button"
-            class="poim-btn"
-            :class="{ 'poim-btn--active': gen.showFetchedAt }"
-            :aria-pressed="gen.showFetchedAt"
-            @click="gen.showFetchedAt = !gen.showFetchedAt"
-          >
-            {{ gen.showFetchedAt ? '隐藏抓取时间' : '显示抓取时间' }}
-          </button>
+      <div class="tool-settings">
+        <Choice
+          v-model="gen.theme"
+          label="卡片"
+          :options="cardThemeOptions"
+        />
+        <div class="tool-switches">
+          <div class="tool-switch">
+            <span>品牌</span>
+            <Toggle
+              v-model="gen.showBrand"
+              label="品牌"
+              on-label="显示"
+              off-label="隐藏"
+            />
+          </div>
+          <div class="tool-switch">
+            <span>指标</span>
+            <Toggle
+              v-model="gen.showMetrics"
+              label="指标"
+              on-label="显示"
+              off-label="隐藏"
+            />
+          </div>
+          <div class="tool-switch">
+            <span>抓取时间</span>
+            <Toggle
+              v-model="gen.showFetchedAt"
+              label="抓取时间"
+              on-label="显示"
+              off-label="隐藏"
+            />
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- 右栏：预览台面 + 导出 -->
-    <section
-      un-min-w-0
-      un-lg:sticky
-      un-lg:top-6
-      un-self-start
-    >
-      <div class="poim-panel">
-        <div class="stage-frame">
-          <ClientOnly>
-            <CardPreview
-              v-if="gen.ready"
-              ref="preview"
-              :post="gen.post"
-              :html="gen.preset.html"
-              :preset-css="gen.preset.css"
-              :theme="gen.theme"
-              :show-brand="gen.showBrand"
-              :show-metrics="gen.showMetrics"
-              :show-fetched-at="gen.showFetchedAt"
-            />
-            <p
-              v-else
-              un-text-sm
-              un-text-muted
-              un-p-6
-            >
-              贴一条 X 状态链接后在这里预览
+    <section class="tool-stage">
+      <div class="stage">
+        <ClientOnly>
+          <CardPreview
+            v-if="gen.ready"
+            ref="preview"
+            :post="gen.post"
+            :html="gen.preset.html"
+            :preset-css="gen.preset.css"
+            :theme="gen.theme"
+            :show-brand="gen.showBrand"
+            :show-metrics="gen.showMetrics"
+            :show-fetched-at="gen.showFetchedAt"
+          />
+          <p
+            v-else
+            class="stage-empty"
+          >
+            贴一条链接，卡片会出现在这里。
+          </p>
+          <template #fallback>
+            <p class="stage-empty">
+              预览在客户端绘制
             </p>
-            <template #fallback>
-              <p
-                un-text-sm
-                un-text-muted
-              >
-                预览在客户端绘制
-              </p>
-            </template>
-          </ClientOnly>
-        </div>
-        <p
-          un-px-5
-          un-pb-3.5
-          un-pt-1
-          un-text-xs
-          un-text-faint
-        >
-          预览即导出 · PNG 为当前帧
-        </p>
+          </template>
+        </ClientOnly>
       </div>
-
-      <div
-        un-mt-5
-        un-flex
-        un-flex-wrap
-        un-gap-3
-      >
-        <button
-          type="button"
-          class="poim-btn poim-btn--ink"
+      <p class="stage-note">
+        预览即导出 · PNG 为当前帧
+      </p>
+      <div class="tool-actions">
+        <Button
           :disabled="!gen.ready"
           @click="copyEmbed"
         >
           {{ copied ? '已复制' : '复制 Web Component' }}
-        </button>
-        <button
-          type="button"
-          class="poim-btn"
+        </Button>
+        <Button
           :disabled="!gen.ready"
           @click="downloadPng"
         >
           下载 PNG
-        </button>
-        <button
+        </Button>
+        <Button
           v-if="hasMotion"
-          type="button"
-          class="poim-btn poim-btn--ghost"
           @click="downloadMedia"
         >
           下载原视频
-        </button>
+        </Button>
       </div>
     </section>
   </div>
