@@ -1,6 +1,12 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { defineNuxtConfig } from 'nuxt/config'
+import {
+  OG_IMAGE_URL,
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_ORIGIN,
+} from './shared/utils/site'
 
 export default defineNuxtConfig({
   modules: [
@@ -20,12 +26,27 @@ export default defineNuxtConfig({
   ],
   app: {
     head: {
-      title: 'poim',
+      title: SITE_NAME,
       htmlAttrs: { lang: 'zh-Hans', class: 'ui' },
       meta: [
-        { name: 'description', content: '把帖子做成可嵌入的卡片与图片' },
+        { name: 'description', content: SITE_DESCRIPTION },
         { name: 'theme-color', content: '#f4f2ec' },
         { name: 'color-scheme', content: 'light dark' },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:site_name', content: SITE_NAME },
+        { property: 'og:title', content: SITE_NAME },
+        { property: 'og:description', content: SITE_DESCRIPTION },
+        { property: 'og:url', content: `${SITE_ORIGIN}/` },
+        { property: 'og:image', content: OG_IMAGE_URL },
+        { property: 'og:image:width', content: '1200' },
+        { property: 'og:image:height', content: '630' },
+        { property: 'og:image:type', content: 'image/png' },
+        { property: 'og:image:alt', content: SITE_DESCRIPTION },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: SITE_NAME },
+        { name: 'twitter:description', content: SITE_DESCRIPTION },
+        { name: 'twitter:image', content: OG_IMAGE_URL },
+        { name: 'twitter:image:alt', content: SITE_DESCRIPTION },
       ],
       // Picks the shell theme before first paint so the paper never flashes the wrong stock.
       script: [{
@@ -39,7 +60,7 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      siteOrigin: '',
+      siteOrigin: SITE_ORIGIN,
     },
   },
   nitro: {
