@@ -160,7 +160,7 @@ URL ──► Nitro /api/resolve ──► PoimPost
 ## 6. 技术栈
 
 - Nuxt + Vite + TypeScript；UnoCSS（与个人站同系）；pnpm；oQ 习惯（ESLint antfu、catalog 等）。
-- 部署：**Cloudflare**（Pages/Workers + Nitro）。Workers 只做 `resolve` 与媒体代理；大媒体走 Cache/R2，不把 MP4 塞进 Worker 内存。
+- 部署：**Cloudflare Workers**（静态资源 + `worker/` 入口做 `resolve` 与媒体代理；`runWorkerFirst: /api/*`）。大媒体走 Cache，不把 MP4 塞进 Worker 内存。
 - PNG：`modern-screenshot` / `html-to-image` 截预览 DOM。
 - Rough.js：v1 不用于卡片预设（手绘预设已移除）。
 - 宿主：应用壳可 SSR；embed 脚本是静态小包。

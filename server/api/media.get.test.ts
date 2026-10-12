@@ -2,20 +2,8 @@ import type { H3Event } from 'h3'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import mediaHandler from './media.get'
 
-function fakeEvent(path: string): H3Event & { __headers: Map<string, string> } {
-  const headers = new Map<string, string>()
-  const event = {
-    path,
-    node: {
-      res: {
-        setHeader(name: string, value: string) {
-          headers.set(name.toLowerCase(), String(value))
-        },
-      },
-    },
-    __headers: headers,
-  }
-  return event as unknown as H3Event & { __headers: Map<string, string> }
+function fakeEvent(path: string): H3Event {
+  return { path } as unknown as H3Event
 }
 
 function stubFetch(status: number, body?: unknown, headers: Record<string, string> = {}): void {
@@ -49,10 +37,11 @@ describe('media 代理（GET /api/media）', () => {
     const event = fakeEvent('/api/media?url=https%3A%2F%2Fvideo.twimg.com%2Fext_tw_video%2F1.mp4')
     const result = await mediaHandler(event)
 
-    expect(event.__headers.get('content-type')).toBe('video/mp4')
-    expect(event.__headers.get('cache-control')).toBe('public, max-age=86400')
-    expect(event.__headers.get('access-control-allow-origin')).toBe('*')
-    expect(result).toBe('BINARY')
+    expect(result).toBeInstanceOf(Response)
+    expect(result.headers.get('content-type')).toBe('video/mp4')
+    expect(result.headers.get('cache-control')).toBe('public, max-age=86400')
+    expect(result.headers.get('access-control-allow-origin')).toBe('*')
+    expect(await result.text()).toBe('BINARY')
     expect(fetch).toHaveBeenCalledTimes(1)
   })
 

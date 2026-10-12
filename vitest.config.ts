@@ -17,6 +17,6 @@ export default defineConfig({
     // 让 .css?raw 走 Vite 的 asset 管道而不是 vitest 的 CSS stub
     // （默认 css:false 会把 .css 导入替换为空模块，导致 ?raw 拿到 ''）
     css: true,
-    include: ['shared/**/*.test.ts', 'app/**/*.test.ts', 'server/**/*.test.ts'],
+    include: ['shared/**/*.test.ts', 'app/**/*.test.ts', 'server/**/*.test.ts', 'worker/**/*.test.ts'],
   },
 })
