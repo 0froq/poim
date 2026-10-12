@@ -1,8 +1,12 @@
+<script setup lang="ts">
+import { Paper } from '@froq/ui'
+</script>
+
 <template>
-  <div class="site-shell">
+  <Paper class="site">
     <AppHeader />
-    <main class="page-content">
+    <main class="page">
       <slot />
     </main>
-  </div>
+  </Paper>
 </template>

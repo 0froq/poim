@@ -9,20 +9,33 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
   ],
   css: [
+    '@fontsource-variable/geist/index.css',
+    '@fontsource-variable/geist-mono/index.css',
+    '@fontsource/instrument-serif/400.css',
+    '@fontsource/instrument-serif/400-italic.css',
     '@fontsource-variable/instrument-sans/index.css',
     '@fontsource-variable/eb-garamond/index.css',
-    '~/assets/css/tokens.css',
+    '@froq/ui/style.css',
     '~/assets/css/main.css',
   ],
   app: {
     head: {
       title: 'poim',
-      htmlAttrs: { lang: 'zh-Hans' },
+      htmlAttrs: { lang: 'zh-Hans', class: 'ui' },
       meta: [
         { name: 'description', content: '把帖子做成可嵌入的卡片与图片' },
-        { name: 'theme-color', content: '#f3f1ec' },
+        { name: 'theme-color', content: '#f4f2ec' },
+        { name: 'color-scheme', content: 'light dark' },
       ],
+      // Picks the shell theme before first paint so the paper never flashes the wrong stock.
+      script: [{
+        innerHTML: `try{var t=localStorage.getItem('poim-theme');document.documentElement.dataset.theme=t==='dark'||t==='light'?t:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch(e){}`,
+        tagPosition: 'head',
+      }],
     },
+  },
+  build: {
+    transpile: ['@froq/ui'],
   },
   runtimeConfig: {
     public: {

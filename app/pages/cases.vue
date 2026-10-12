@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import type { ChoiceOption } from '@froq/ui'
+import type { PoimTheme } from '~~/shared/types/post'
+import { Choice } from '@froq/ui'
 import { CARD_CASES } from '~~/shared/fixtures/card-cases'
 import { getPreset } from '~~/shared/utils/presets'
-import CardPreview from '~/components/CardPreview.vue'
 
 useHead({
   title: 'poim · 卡片样例',
@@ -9,78 +11,54 @@ useHead({
 })
 
 const preset = getPreset('default')
-const theme = shallowRef<'light' | 'dark'>('light')
+const theme = shallowRef<PoimTheme>('light')
+const themeOptions: ChoiceOption<PoimTheme>[] = [
+  { value: 'light', label: '浅' },
+  { value: 'dark', label: '深' },
+]
 </script>
 
 <template>
-  <div un-pb-24>
-    <div
-      un-flex
-      un-flex-wrap
-      un-items-end
-      un-justify-between
-      un-gap-4
-      un-mb-10
-    >
+  <div class="cases">
+    <div class="cases-head">
       <div>
-        <h1
-          un-font-serif
-          un-text-3xl
-          un-text-ink
-        >
+        <h1 class="tool-title">
           卡片样例
         </h1>
-        <p
-          un-mt-2
-          un-text-sm
-          un-text-muted
-        >
-          模拟原创 / 回复 / 转发 / 引用，以及自己与父级 0–4 张图。用来核对作者头栏与媒体，不是产品入口。
+        <p class="tool-lede">
+          模拟原创、回复、转发和引用，以及自己与父级 0–4 张图。用来核对作者头栏与媒体。
         </p>
       </div>
-      <button
-        type="button"
-        class="poim-btn"
-        @click="theme = theme === 'light' ? 'dark' : 'light'"
-      >
-        卡片{{ theme === 'light' ? '深色' : '浅色' }}
-      </button>
+      <Choice
+        v-model="theme"
+        label="卡片"
+        :options="themeOptions"
+      />
     </div>
 
-    <div un-space-y-14>
+    <div class="cases-list">
       <section
         v-for="item in CARD_CASES"
         :id="item.id"
         :key="item.id"
       >
-        <h2
-          un-font-serif
-          un-text-xl
-          un-text-ink
-        >
+        <h2 class="case-title">
           {{ item.title }}
         </h2>
-        <p
-          un-mt-1
-          un-mb-4
-          un-text-sm
-          un-text-muted
-        >
+        <p class="case-note">
           {{ item.note }}
-          <code un-text-faint>{{ item.id }}</code>
+          <code>{{ item.id }}</code>
         </p>
-        <div class="poim-panel">
-          <div class="stage-frame">
-            <ClientOnly>
-              <CardPreview
-                :post="item.post"
-                :html="preset.html"
-                :preset-css="preset.css"
-                :theme="theme"
-                :show-brand="true"
-              />
-            </ClientOnly>
-          </div>
+        <div class="stage">
+          <ClientOnly>
+            <CardPreview
+              :post="item.post"
+              :html="preset.html"
+              :preset-css="preset.css"
+              :theme="theme"
+              :show-brand="true"
+            />
+          </ClientOnly>
         </div>
       </section>
     </div>

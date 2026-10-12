@@ -15,7 +15,7 @@ export async function resolvePostFromUrl(raw: string): Promise<PoimPost> {
   }
 
   const platform = detectPlatform(url)
-  if (platform === 'youtube' || platform === 'bilibili' || platform === 'xiaohongshu') {
+  if (platform === 'xiaohongshu') {
     throw createError({
       statusCode: 400,
       statusMessage: 'unsupported',

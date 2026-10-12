@@ -1,7 +1,6 @@
 import {
   defineConfig,
   presetAttributify,
-  presetIcons,
   presetTagify,
   presetTypography,
   presetWind4,
@@ -14,40 +13,12 @@ export default defineConfig({
     breakpoints: {
       sm: '600px',
       md: '900px',
-      // 双栏须能放下 25rem 表单 + gap + 640px 卡片 + 台面 padding，否则预览会横向滚动。
+      // 双栏须能放下 25rem 表单 + gap + 640px 卡片 + 台面 padding。
       lg: '1240px',
     },
-    colors: {
-      // 语义色 → 壳 token（浅深在 :root 翻转，组件不用写 dark: 变体）
-      'paper': 'var(--poim-bg)',
-      'surface': 'var(--poim-surface)',
-      'ink': 'var(--poim-fg)',
-      'muted': 'var(--poim-muted)',
-      'faint': 'var(--poim-faint)',
-      'line': 'var(--poim-line)',
-      'line-strong': 'var(--poim-line-strong)',
-      'accent': 'var(--poim-accent)',
-      'danger': 'var(--poim-danger)',
-    },
-  },
-  rules: [
-    ['font-sans', { 'font-family': 'var(--poim-sans)' }],
-    ['font-serif', { 'font-family': 'var(--poim-serif)' }],
-    ['font-mono', { 'font-family': 'var(--poim-mono)' }],
-  ],
-  shortcuts: {
-    'page-content': 'mx-auto max-w-[1280px] block px-6 md:px-10 min-w-0',
-    'gen-layout': 'pb-24 grid gap-10 lg:grid-cols-[minmax(0,25rem)_minmax(43rem,1fr)]',
   },
   presets: [
     presetWind4(),
-    presetIcons({
-      scale: 1.2,
-      collections: {
-        carbon: () => import('@iconify-json/carbon/icons.json').then(i => i.default as any),
-        solar: () => import('@iconify-json/solar/icons.json').then(i => i.default as any),
-      },
-    }),
     presetAttributify({
       strict: true,
       prefixedOnly: true,

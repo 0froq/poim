@@ -20,7 +20,7 @@ Hermes Kanban 的 `poim` board 是产品开发执行层，不属于研究项目�
 - **输出**
   - **Web Component 快照**（主交付）：自包含，嵌入页不强制回拉本站。
   - **PNG**：与当时预览 DOM **同一套卡片** 截图，不是平台截图、也不是第二套排版引擎（Satori）。
-- **v1 平台**：只跑通 **X**。表单占位（disabled）：YouTube、Bilibili、小红书。贴非 X 链接 → 明确失败。
+- **v1 平台**：只跑通 **X**。视频站点（YouTube、Bilibili，以及其它只出视频的站点）不会支持：视频不能变成一张图，也不做「即将支持」占位。小红书仍是后期，不在表单里占位；贴到它会明确失败。贴其它非 X 链接同样失败。
 
 帖子边界：单条 + 多图 + 视频/GIF + **一层引用**。不做整楼线程、不做 Articles。回复当普通单条。
 
@@ -28,9 +28,13 @@ Hermes Kanban 的 `poim` board 是产品开发执行层，不属于研究项目�
 
 ---
 
-## 2. 视觉：设计师自主，保留架构约束
+## 2. 视觉：壳用 @froq/ui，卡片仍是自己的契约
 
-应用壳（生成器页面、导航、表单）与卡片**都**由 Poim Designer 负责设计，**不强制继承 0froq.github.io 的样式**。设计师在品牌与技术边界内自由发挥视觉语言；个人站只作为可参考的基线之一，不是模板。
+应用壳与 froQ 其它站点同一套皮：vendored `@froq/ui`（`vendor/ui`，来自 `0froq/ui` 的 `main`）的 `Paper` 入口。浅色和深色用同一个组件，纹理不同（浅色纤维、深色颗粒）。颜色、字体、缓动、圆角走库的 `--ui-*`：Instrument Serif、Geist、Geist Mono，朱红 `--ui-accent`。控件用库里的 `TextInput`、`Choice`、`Toggle`、`Button`。作用域类是 `ui`。
+
+poim 是工具，不是内容站。壳只有生成器（和已有的 `/cases`）：输入、预览、导出。不搬落地页的导航和长分区。
+
+卡片预设不跟壳走。embed 仍只带卡片 token + 预设 CSS（`--poim-*`），不把纸纹、壳字体或 `@froq/ui` 打进快照。
 
 硬约束（架构性，不随视觉风格变化）：
 
@@ -38,11 +42,11 @@ Hermes Kanban 的 `poim` board 是产品开发执行层，不属于研究项目�
 | --- | --- |
 | 浅深 | 浅深是独立维度，CSS 变量驱动；导出卡片冻死当时 `data-theme`，不跟嵌入页主题跑。 |
 | embed | embed 只带卡片 token + 预设 CSS，不把应用壳/站点 CSS 无差别打进 embed。 |
-| 圆角与风格 | 避免大圆角营销落地页、Inter/系统蓝按钮、iframe 式官方 X 皮。具体风格由设计师定。 |
-| 动势 | 短过渡（~200ms 级）；浮层轻微倾角可用；尊重 `prefers-reduced-motion`。 |
-| 布局 | 内容栏收住（个人站参考 `max-w-[800px]`）；生成器可略宽，不要全宽仪表盘。 |
-| 字体与色板 | 由设计师建立一套自洽的字体与色板（含浅深两套），通过 `--poim-*` token 暴露。 |
-| 浅深切换 | 应用壳浅深切换手感自定；与个人站一致更好，但不强制。 |
+| 圆角与风格 | 壳跟随 `@froq/ui`（2px 圆角、下划线按钮、朱红点选）。避免大圆角营销落地页、Inter/系统蓝按钮、iframe 式官方 X 皮。 |
+| 动势 | 库的 `--ui-dur` / `--ui-ease`；尊重 `prefers-reduced-motion`。 |
+| 布局 | 生成器双栏收住（约 1280px），不要全宽仪表盘。窄屏单栏，卡片 DOM 仍是 640px。 |
+| 字体与色板 | 壳用 `--ui-*`。卡片继续用 `--poim-*`，两套不混进同一个作用域。 |
+| 浅深切换 | 壳写在 `html[data-theme]`，首屏脚本先于绘制写入。卡片主题是另一维，不跟壳走。 |
 
 UnoCSS 习惯与个人站一致：`presetWind4`、attributify **`un-` 前缀**、`transformerDirectives` / `variantGroup`。
 
@@ -175,6 +179,7 @@ URL ──► Nitro /api/resolve ──► PoimPost
 - 用户配额 / 账号 / 生成历史
 - 官方 X API
 - 通用爬虫、登录墙平台（小红书等）做成「半支持」
+- 视频站点（YouTube、Bilibili 等）：不能变成一张图，不做、也不占位
 - 整卡录制成 GIF/WebP
 - 嵌入页加载 Rough.js / Vue / UnoCSS
 - 预设名称冒充 Vercel/Apple/Anthropic 官方皮肤
@@ -184,7 +189,7 @@ URL ──► Nitro /api/resolve ──► PoimPost
 ## 8. 后期（有意识推迟）
 
 - 载荷签名；徽章在验签失败时摘掉
-- YouTube / Bilibili / 小红书真实现
+- 小红书真实现
 - 品牌向预设
 - 媒体转码为 GIF/WebP
 - 线程展开

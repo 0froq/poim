@@ -4,7 +4,6 @@ import { emptyPost } from '~~/shared/utils/empty-post'
 import { getPreset } from '~~/shared/utils/presets'
 
 export function useGenerator() {
-  const platform = shallowRef<'x' | 'youtube' | 'bilibili' | 'xiaohongshu'>('x')
   const url = shallowRef('')
   const post = ref(emptyPost())
   const preset = computed(() => getPreset('default'))
@@ -16,13 +15,6 @@ export function useGenerator() {
   const resolveError = shallowRef('')
 
   const ready = computed(() => post.value.source === 'url')
-
-  const placeholderPlatforms = [
-    { id: 'x' as const, label: 'X', enabled: true },
-    { id: 'youtube' as const, label: 'YouTube', enabled: false },
-    { id: 'bilibili' as const, label: 'Bilibili', enabled: false },
-    { id: 'xiaohongshu' as const, label: '小红书', enabled: false },
-  ]
 
   function clearPost(): void {
     post.value = emptyPost()
@@ -62,7 +54,6 @@ export function useGenerator() {
   })
 
   return reactive({
-    platform,
     url,
     post,
     preset,
@@ -73,7 +64,6 @@ export function useGenerator() {
     resolving,
     resolveError,
     ready,
-    placeholderPlatforms,
     resolveFromUrl,
   })
 }

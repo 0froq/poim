@@ -44,12 +44,26 @@ describe('worker /api', () => {
     })
   })
 
-  it('resolve youtube url returns 400 unsupported', async () => {
-    const response = await call(`/api/resolve?url=${encodeURIComponent('https://youtu.be/dQw4w9WgXcQ')}`)
+  it('resolve video site urls return generic unsupported', async () => {
+    for (const raw of ['https://youtu.be/dQw4w9WgXcQ', 'https://www.bilibili.com/video/BV1xx411c7mD', 'https://b23.tv/abc']) {
+      const response = await call(`/api/resolve?url=${encodeURIComponent(raw)}`)
+      expect(response.status).toBe(400)
+      const body = await response.json() as { data?: { platform?: string } }
+      expect(body).toMatchObject({
+        statusMessage: 'invalid',
+        data: { error: 'unsupported', message: '暂不支持该平台' },
+      })
+      expect(body.data?.platform).toBeUndefined()
+      expect(JSON.stringify(body)).not.toMatch(/youtube|bilibili/i)
+    }
+  })
+
+  it('resolve xiaohongshu url returns 400 unsupported with platform', async () => {
+    const response = await call(`/api/resolve?url=${encodeURIComponent('https://www.xiaohongshu.com/explore/1')}`)
     expect(response.status).toBe(400)
     expect(await response.json()).toMatchObject({
       statusMessage: 'unsupported',
-      data: { error: 'unsupported', platform: 'youtube' },
+      data: { error: 'unsupported', platform: 'xiaohongshu' },
     })
   })
 

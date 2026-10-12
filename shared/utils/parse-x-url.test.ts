@@ -21,10 +21,16 @@ describe('parseXStatusUrl', () => {
 })
 
 describe('detectPlatform', () => {
-  it('detects placeholders and x', () => {
-    expect(detectPlatform('https://www.youtube.com/watch?v=dQw4w9WgXcQ')).toBe('youtube')
-    expect(detectPlatform('https://www.bilibili.com/video/BV1')).toBe('bilibili')
+  it('detects x and xiaohongshu', () => {
     expect(detectPlatform('https://www.xiaohongshu.com/explore/1')).toBe('xiaohongshu')
+    expect(detectPlatform('https://xhslink.com/abc')).toBe('xiaohongshu')
     expect(detectPlatform('https://x.com/jack/status/20')).toBe('x')
+  })
+
+  it('does not recognize video sites', () => {
+    expect(detectPlatform('https://www.youtube.com/watch?v=dQw4w9WgXcQ')).toBe('unknown')
+    expect(detectPlatform('https://youtu.be/dQw4w9WgXcQ')).toBe('unknown')
+    expect(detectPlatform('https://www.bilibili.com/video/BV1')).toBe('unknown')
+    expect(detectPlatform('https://b23.tv/abc')).toBe('unknown')
   })
 })
