@@ -71,9 +71,8 @@ function isHttpUrl(href: string): boolean {
 export function sanitizeHtmlFragment(html: string): string {
   const clean = DOMPurify.sanitize(html, getDomPurifyConfig())
   const doc = new DOMParser().parseFromString(clean, 'text/html')
-  doc.querySelectorAll('a[href]').forEach((anchor) => {
-    if (!isHttpUrl(anchor.getAttribute('href') ?? ''))
-      anchor.removeAttribute('href')
+  doc.querySelectorAll('a[href]').forEach(anchor => {
+    if (!isHttpUrl(anchor.getAttribute('href') ?? '')) anchor.removeAttribute('href')
   })
   return doc.body.innerHTML
 }

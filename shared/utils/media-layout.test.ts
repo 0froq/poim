@@ -9,7 +9,11 @@ function img(width: number, height: number): PoimMedia {
 describe('planMediaMosaic', () => {
   it('零或一张：单图流，不锁高度（完整比例）', () => {
     expect(planMediaMosaic([], 597)).toMatchObject({ pattern: 'single', heightPx: null })
-    expect(planMediaMosaic([img(1200, 2670)], 597)).toMatchObject({ pattern: 'single', heightPx: null, count: 1 })
+    expect(planMediaMosaic([img(1200, 2670)], 597)).toMatchObject({
+      pattern: 'single',
+      heightPx: null,
+      count: 1,
+    })
   })
 
   it('超过四张只按四张规划', () => {

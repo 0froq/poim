@@ -14,8 +14,7 @@ export async function proxyMedia(url: string): Promise<Response> {
   let upstream: Response
   try {
     upstream = await fetch(url, { headers: { 'user-agent': 'poim/0.1' } })
-  }
-  catch {
+  } catch {
     throw createError({
       statusCode: 502,
       statusMessage: 'unavailable',

@@ -29,10 +29,7 @@ export default defineConfig({
     }),
     presetTypography(),
   ],
-  transformers: [
-    transformerDirectives(),
-    transformerVariantGroup(),
-  ],
+  transformers: [transformerDirectives(), transformerVariantGroup()],
   layers: {
     default: 0,
     components: 1,
