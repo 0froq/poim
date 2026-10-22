@@ -32,7 +32,9 @@ describe('预设与合同白名单', () => {
   it('每个预设 HTML 只使用合同白名单标签', () => {
     for (const preset of POIM_PRESETS) {
       const doc = new DOMParser().parseFromString(preset.html, 'text/html')
-      const tags = new Set(Array.from(doc.body.querySelectorAll('*')).map(el => el.tagName.toLowerCase()))
+      const tags = new Set(
+        Array.from(doc.body.querySelectorAll('*')).map(el => el.tagName.toLowerCase()),
+      )
       for (const tag of tags) {
         expect(WHITELIST.has(tag), `${preset.id} 用了白名单外标签 <${tag}>`).toBe(true)
       }
@@ -66,15 +68,23 @@ describe('预设与合同白名单', () => {
       // quote 与主帖同一套头栏：header + avatar + 块级 name/handle
       expect(preset.html).toContain('data-poim="quote"')
       expect(preset.html).toContain('hidden')
-      const quote = new DOMParser().parseFromString(preset.html, 'text/html').querySelector('[data-poim="quote"]')
+      const quote = new DOMParser()
+        .parseFromString(preset.html, 'text/html')
+        .querySelector('[data-poim="quote"]')
       expect(quote).toBeTruthy()
       expect(quote!.querySelector('.poim-header')).toBeTruthy()
-      expect(quote!.querySelector('[data-poim="author-avatar"]')?.classList.contains('poim-avatar')).toBe(true)
+      expect(
+        quote!.querySelector('[data-poim="author-avatar"]')?.classList.contains('poim-avatar'),
+      ).toBe(true)
       expect(quote!.querySelector('[data-poim="author-name"]')?.tagName).toBe('DIV')
       expect(quote!.querySelector('[data-poim="author-handle"]')?.tagName).toBe('DIV')
-      expect(quote!.querySelector('[data-poim="media"]')?.classList.contains('poim-media')).toBe(true)
+      expect(quote!.querySelector('[data-poim="media"]')?.classList.contains('poim-media')).toBe(
+        true,
+      )
       expect(quote!.querySelector('.poim-quote-inner')).toBeNull()
-      const reply = new DOMParser().parseFromString(preset.html, 'text/html').querySelector('[data-poim="reply"]')
+      const reply = new DOMParser()
+        .parseFromString(preset.html, 'text/html')
+        .querySelector('[data-poim="reply"]')
       expect(reply?.classList.contains('poim-flow')).toBe(true)
       expect(reply?.querySelector('.poim-header')).toBeTruthy()
       expect(reply?.querySelector('[data-poim="media"]')).toBeTruthy()
@@ -84,7 +94,16 @@ describe('预设与合同白名单', () => {
   it('消毒配置与合同白名单一致（不含 article/header/footer/section）', () => {
     const config = getDomPurifyConfig()
     const allowed = config.ALLOWED_TAGS as string[]
-    for (const tag of ['article', 'header', 'footer', 'section', 'script', 'iframe', 'object', 'form'])
+    for (const tag of [
+      'article',
+      'header',
+      'footer',
+      'section',
+      'script',
+      'iframe',
+      'object',
+      'form',
+    ])
       expect(allowed.includes(tag), `${tag} 不应在白名单`).toBe(false)
   })
 })
@@ -121,7 +140,16 @@ describe('预设 CSS 外置 .css 文件（构建链追踪）', () => {
   })
 
   it('tokens.css 声明全部 --poim-* token（唯一颜色契约来源）', () => {
-    for (const token of ['--poim-bg', '--poim-card', '--poim-fg', '--poim-muted', '--poim-line', '--poim-serif', '--poim-sans', '--poim-radius'])
+    for (const token of [
+      '--poim-bg',
+      '--poim-card',
+      '--poim-fg',
+      '--poim-muted',
+      '--poim-line',
+      '--poim-serif',
+      '--poim-sans',
+      '--poim-radius',
+    ])
       expect(tokensRaw).toContain(token)
     // 浅深独立维度：两套选择器都在
     expect(tokensRaw).toContain('.poim-stage[data-theme=')
@@ -146,7 +174,9 @@ describe('预设 CSS 外置 .css 文件（构建链追踪）', () => {
     expect(mediaBlock).not.toMatch(/object-fit:\s*cover/)
 
     expect(tokensRaw).toMatch(/data-mosaic='grid2x2'/)
-    expect(tokensRaw).toMatch(/\.poim-media\[data-mosaic='grid2x2'\] \.poim-image[\s\S]*object-fit:\s*cover/)
+    expect(tokensRaw).toMatch(
+      /\.poim-media\[data-mosaic='grid2x2'\] \.poim-image[\s\S]*object-fit:\s*cover/,
+    )
     expect(tokensRaw).not.toMatch(/\.poim-media\[data-count=/)
   })
 

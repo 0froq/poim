@@ -3,7 +3,8 @@ import { sanitizeHtmlFragment } from './sanitize-html'
 
 describe('sanitizeHtmlFragment 合同白名单', () => {
   it('允许白名单标签与 data-poim/class/style', () => {
-    const html = '<div class="poim-card" data-poim="text">hi <strong>bold</strong> <a href="https://x.com">link</a></div>'
+    const html =
+      '<div class="poim-card" data-poim="text">hi <strong>bold</strong> <a href="https://x.com">link</a></div>'
     const out = sanitizeHtmlFragment(html)
     expect(out).toContain('class="poim-card"')
     expect(out).toContain('data-poim="text"')
@@ -32,7 +33,8 @@ describe('sanitizeHtmlFragment 合同白名单', () => {
   })
 
   it('白名单外标签（article/header/footer/section）被剥离', () => {
-    const html = '<article><header>h</header><section>s</section><footer>f</footer><div class="poim-card">ok</div></article>'
+    const html =
+      '<article><header>h</header><section>s</section><footer>f</footer><div class="poim-card">ok</div></article>'
     const out = sanitizeHtmlFragment(html)
     expect(out).not.toContain('<article')
     expect(out).not.toContain('<header')
@@ -65,7 +67,8 @@ describe('sanitizeHtmlFragment 合同白名单', () => {
   })
 
   it('媒体标签保留播放所需属性', () => {
-    const html = '<video src="/api/media?url=x" poster="/p.jpg" autoplay muted loop playsinline controls></video><img src="data:image/png;base64,AAA">'
+    const html =
+      '<video src="/api/media?url=x" poster="/p.jpg" autoplay muted loop playsinline controls></video><img src="data:image/png;base64,AAA">'
     const out = sanitizeHtmlFragment(html)
     expect(out).toContain('<video')
     expect(out).toContain('autoplay')

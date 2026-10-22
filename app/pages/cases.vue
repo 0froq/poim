@@ -6,7 +6,8 @@ import { CARD_CASES } from '~~/shared/fixtures/card-cases'
 import { getPreset } from '~~/shared/utils/presets'
 
 const pageTitle = 'poim · 卡片样例'
-const pageDescription = '模拟原创、回复、转发和引用，以及自己与父级 0–4 张图。用来核对作者头栏与媒体。'
+const pageDescription =
+  '模拟原创、回复、转发和引用，以及自己与父级 0–4 张图。用来核对作者头栏与媒体。'
 
 useSeoMeta({
   title: pageTitle,
@@ -33,9 +34,7 @@ const themeOptions: ChoiceOption<PoimTheme>[] = [
   <div class="cases">
     <div class="cases-head">
       <div>
-        <h1 class="tool-title">
-          卡片样例
-        </h1>
+        <h1 class="tool-title"> 卡片样例 </h1>
         <p class="tool-lede">
           模拟原创、回复、转发和引用，以及自己与父级 0–4 张图。用来核对作者头栏与媒体。
         </p>

@@ -22,29 +22,27 @@ export function useGenerator() {
 
   async function resolveFromUrl(): Promise<void> {
     const target = url.value.trim()
-    if (!target)
-      return
+    if (!target) return
     resolving.value = true
     resolveError.value = ''
     try {
       post.value = await $fetch('/api/resolve', { query: { url: target } })
-    }
-    catch (error) {
+    } catch (error) {
       clearPost()
-      const err = error as { data?: { data?: { message?: string }, message?: string }, statusMessage?: string }
-      resolveError.value = err.data?.data?.message
-        ?? err.data?.message
-        ?? err.statusMessage
-        ?? '无法解析这条帖子'
-    }
-    finally {
+      const err = error as {
+        data?: { data?: { message?: string }; message?: string }
+        statusMessage?: string
+      }
+      resolveError.value =
+        err.data?.data?.message ?? err.data?.message ?? err.statusMessage ?? '无法解析这条帖子'
+    } finally {
       resolving.value = false
     }
   }
 
   const resolveDebounced = useDebounceFn(resolveFromUrl, 400)
 
-  watch(url, (value) => {
+  watch(url, value => {
     if (!value.trim()) {
       clearPost()
       resolveError.value = ''

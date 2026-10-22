@@ -5,7 +5,6 @@ export const OG_IMAGE_PATH = '/og.png'
 export const OG_IMAGE_URL = `${SITE_ORIGIN}${OG_IMAGE_PATH}`
 
 export function canonicalUrl(path: string): string {
-  if (path === '/' || path === '')
-    return `${SITE_ORIGIN}/`
+  if (path === '/' || path === '') return `${SITE_ORIGIN}/`
   return `${SITE_ORIGIN}${path.startsWith('/') ? path : `/${path}`}`
 }

@@ -10,18 +10,15 @@ const X_STATUS = /(?:twitter\.com|x\.com)\/(?:i\/web\/status|@?(\w+)\/status)\/(
 
 export function detectPlatform(raw: string): DetectedPlatform {
   const url = raw.trim()
-  if (/xiaohongshu\.com|xhslink\.com/i.test(url))
-    return 'xiaohongshu'
-  if (X_STATUS.test(url) || /(?:twitter\.com|x\.com)\/.+/i.test(url))
-    return 'x'
+  if (/xiaohongshu\.com|xhslink\.com/i.test(url)) return 'xiaohongshu'
+  if (X_STATUS.test(url) || /(?:twitter\.com|x\.com)\/.+/i.test(url)) return 'x'
   return 'unknown'
 }
 
 export function parseXStatusUrl(raw: string): ParsedXUrl | null {
   const trimmed = raw.trim()
   const match = trimmed.match(X_STATUS)
-  if (!match?.[2])
-    return null
+  if (!match?.[2]) return null
   return {
     platform: 'x',
     handle: match[1],

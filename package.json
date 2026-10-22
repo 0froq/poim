@@ -1,12 +1,8 @@
 {
   "name": "poim",
-  "type": "module",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@10.15.0",
-  "engines": {
-    "node": ">=22.18.0"
-  },
+  "type": "module",
   "scripts": {
     "dev": "nuxt dev",
     "build": "nuxt build",
@@ -14,12 +10,16 @@
     "deploy": "pnpm generate && cf deploy",
     "preview": "nuxt preview",
     "preview:deploy": "pnpm generate && cf previews deploy",
-    "worker:dev": "wrangler dev --local --experimental-new-config",
+    "worker:dev": "cf dev --local",
     "worker:typecheck": "tsc -p worker/tsconfig.json",
-    "lint": "eslint . --cache --concurrency=auto",
-    "lint:fix": "eslint . --cache --concurrency=auto --fix",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "lint": "vp lint --config .oxlintrc.json .",
+    "lint:fix": "vp lint --config .oxlintrc.json . --fix",
+    "fmt": "vp fmt --config .oxfmtrc.json .",
+    "fmt:check": "vp fmt --config .oxfmtrc.json . --check",
+    "check": "vp run lint && vp run fmt:check && vp run typecheck",
+    "typecheck": "nuxt typecheck",
+    "test": "vp test --config tooling/vite.config.ts",
+    "test:watch": "vp test --config tooling/vite.config.ts --watch",
     "postinstall": "nuxt prepare",
     "prepare": "npx simple-git-hooks"
   },
@@ -40,10 +40,8 @@
     "zod": "catalog:prod"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "catalog:dev",
     "@cloudflare/workers-types": "catalog:dev",
-    "@nuxt/eslint": "catalog:dev",
-    "@unocss/eslint-plugin": "catalog:dev",
+    "@types/node": "catalog:dev",
     "@unocss/nuxt": "catalog:dev",
     "@unocss/preset-attributify": "catalog:dev",
     "@unocss/preset-tagify": "catalog:dev",
@@ -52,13 +50,12 @@
     "@unocss/transformer-directives": "catalog:dev",
     "@unocss/transformer-variant-group": "catalog:dev",
     "cf": "catalog:dev",
-    "eslint": "catalog:dev",
-    "eslint-plugin-format": "catalog:dev",
     "happy-dom": "catalog:dev",
     "lint-staged": "catalog:dev",
     "simple-git-hooks": "catalog:dev",
     "typescript": "catalog:dev",
     "unocss": "catalog:dev",
+    "vite-plus": "catalog:dev",
     "vitest": "catalog:dev",
     "vue-tsc": "catalog:dev",
     "wrangler": "catalog:dev"
@@ -67,6 +64,13 @@
     "pre-commit": "pnpm i --frozen-lockfile --ignore-scripts --offline && npx lint-staged"
   },
   "lint-staged": {
-    "*": "eslint --fix"
-  }
+    "*": [
+      "vp lint --config .oxlintrc.json --fix --no-error-on-unmatched-pattern",
+      "vp fmt --config .oxfmtrc.json --no-error-on-unmatched-pattern"
+    ]
+  },
+  "engines": {
+    "node": "^24.21.0 || >=26.0.0"
+  },
+  "packageManager": "pnpm@12.11.2"
 }
