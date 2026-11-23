@@ -27,8 +27,7 @@ function combinedCss(): string {
 
 function paint(): void {
   const stage = stageRef.value
-  if (!stage)
-    return
+  if (!stage) return
 
   const clean = sanitizeHtmlFragment(props.html)
   const parsed = new DOMParser().parseFromString(clean, 'text/html')
@@ -55,14 +54,22 @@ function paint(): void {
   })
 
   const brand = card.querySelector('[data-poim="brand"]')
-  if (brand instanceof HTMLElement && !props.showBrand)
-    brand.hidden = true
+  if (brand instanceof HTMLElement && !props.showBrand) brand.hidden = true
 
   stage.append(card)
 }
 
 watch(
-  () => [props.post, props.html, props.userCss, props.presetCss, props.theme, props.showBrand, props.showMetrics, props.showFetchedAt],
+  () => [
+    props.post,
+    props.html,
+    props.userCss,
+    props.presetCss,
+    props.theme,
+    props.showBrand,
+    props.showMetrics,
+    props.showFetchedAt,
+  ],
   () => nextTick(paint),
   { deep: true },
 )
@@ -74,11 +81,14 @@ defineExpose({
   combinedCss,
   getInnerCard(): HTMLElement | null {
     const stage = stageRef.value
-    if (!stage)
-      return null
-    return stage.querySelector('.poim-card')
-      ?? Array.from(stage.children).find(node => node instanceof HTMLElement && node.tagName !== 'STYLE') as HTMLElement | undefined
-      ?? null
+    if (!stage) return null
+    return (
+      stage.querySelector('.poim-card') ??
+      (Array.from(stage.children).find(
+        node => node instanceof HTMLElement && node.tagName !== 'STYLE',
+      ) as HTMLElement | undefined) ??
+      null
+    )
   },
 })
 </script>

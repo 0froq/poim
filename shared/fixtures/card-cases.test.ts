@@ -27,8 +27,9 @@ describe('卡片样例夹具', () => {
       document.body.innerHTML = html
       const root = document.querySelector('.poim-card') as HTMLElement
       fillTemplate(root, item.post, { mediaSrc: u => u })
-      const header = root.querySelector(':scope > .poim-header')
-        ?? root.querySelector(':scope > .poim-embed > .poim-header')
+      const header =
+        root.querySelector(':scope > .poim-header') ??
+        root.querySelector(':scope > .poim-embed > .poim-header')
       expect(header, item.id).toBeTruthy()
       expect(header!.querySelector('[data-poim="author-name"]')?.tagName).toBe('DIV')
       expect(header!.querySelector('[data-poim="author-handle"]')?.tagName).toBe('DIV')
@@ -37,19 +38,24 @@ describe('卡片样例夹具', () => {
         expect(qHeader, item.id).toBeTruthy()
         expect(qHeader!.querySelector('[data-poim="author-name"]')?.tagName).toBe('DIV')
         expect(qHeader!.querySelector('[data-poim="author-handle"]')?.tagName).toBe('DIV')
-        expect(qHeader!.querySelector('[data-poim="author-avatar"]')?.classList.contains('poim-avatar')).toBe(true)
+        expect(
+          qHeader!.querySelector('[data-poim="author-avatar"]')?.classList.contains('poim-avatar'),
+        ).toBe(true)
       }
       if (item.post.replyTo) {
         const flow = root.querySelector('[data-poim="reply"]') as HTMLElement
         expect(flow.hidden, item.id).toBe(false)
         expect(flow.classList.contains('poim-flow')).toBe(true)
-        expect(flow.querySelector('[data-poim="author-name"]')?.textContent).toBe(item.post.replyTo.author.name)
+        expect(flow.querySelector('[data-poim="author-name"]')?.textContent).toBe(
+          item.post.replyTo.author.name,
+        )
         expect(root.querySelector('.poim-reply-to'), item.id).toBeNull()
-      }
-      else if (item.post.replyToHandle) {
+      } else if (item.post.replyToHandle) {
         const flow = root.querySelector('[data-poim="reply"]') as HTMLElement
         expect(flow.hidden, item.id).toBe(false)
-        expect(flow.querySelector('[data-poim="author-handle"]')?.textContent).toBe(`@${item.post.replyToHandle}`)
+        expect(flow.querySelector('[data-poim="author-handle"]')?.textContent).toBe(
+          `@${item.post.replyToHandle}`,
+        )
         expect(root.querySelector('.poim-reply-to'), item.id).toBeNull()
       }
       if (item.post.repostedBy) {

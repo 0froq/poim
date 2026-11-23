@@ -42,6 +42,7 @@ export async function resolvePostFromUrl(raw: string): Promise<PoimPost> {
   // 失败时 resolveXTweet 抛 404/502，这里只在真正拉取成功后才打 fetchedAt
   const post = await resolveXTweet(parsed.id)
   post.fetchedAt = new Date().toISOString()
-  post.canonicalUrl = post.canonicalUrl ?? `https://x.com/${parsed.handle ?? 'i'}/status/${parsed.id}`
+  post.canonicalUrl =
+    post.canonicalUrl ?? `https://x.com/${parsed.handle ?? 'i'}/status/${parsed.id}`
   return post
 }

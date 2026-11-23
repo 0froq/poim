@@ -23,16 +23,14 @@ function clamp(n: number, min: number, max: number): number {
 }
 
 function aspect(item: PoimMedia): number {
-  if (item.width && item.height && item.height > 0)
-    return item.width / item.height
+  if (item.width && item.height && item.height > 0) return item.width / item.height
   return 1
 }
 
 export function planMediaMosaic(items: PoimMedia[], innerWidth: number): MosaicPlan {
   const media = items.slice(0, MOSAIC_MAX)
   const n = media.length
-  if (n <= 1)
-    return { count: n, pattern: 'single', heightPx: null }
+  if (n <= 1) return { count: n, pattern: 'single', heightPx: null }
 
   const width = Math.max(innerWidth, 160)
 
@@ -55,8 +53,7 @@ export function planMediaMosaic(items: PoimMedia[], innerWidth: number): MosaicP
 }
 
 export function mosaicInnerWidth(container: HTMLElement): number {
-  if (container.closest('.poim-quote, .poim-embed'))
-    return EMBED_MEDIA_WIDTH_PX
+  if (container.closest('.poim-quote, .poim-embed')) return EMBED_MEDIA_WIDTH_PX
   return CARD_MEDIA_WIDTH_PX
 }
 

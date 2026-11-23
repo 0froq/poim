@@ -63,7 +63,6 @@ export const POIM_PRESETS: PoimPreset[] = [
 export function getPreset(id: PoimPresetId): PoimPreset {
   // 不设兼容别名 / 静默回退：未知 id 直接报错（v1 仅 default，PROJECT.md §3）
   const preset = POIM_PRESETS.find(p => p.id === id)
-  if (!preset)
-    throw new Error(`unknown preset: ${id}`)
+  if (!preset) throw new Error(`unknown preset: ${id}`)
   return preset
 }

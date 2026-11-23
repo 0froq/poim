@@ -13,12 +13,12 @@ describe('sanitizeUserCss', () => {
     const css = [
       '.a { background: url("https://evil.example/img.png"); }',
       '.b { background: url(data:image/png;base64,AAA); }',
-      '.c { background: url(\'/api/media?url=x\'); }',
+      ".c { background: url('/api/media?url=x'); }",
       '.d { mask-image: url(#grad); }',
     ].join('\n')
     const out = sanitizeUserCss(css)
     expect(out).toContain('url(data:image/png;base64,AAA)')
-    expect(out).toContain('url(\'/api/media?url=x\')')
+    expect(out).toContain("url('/api/media?url=x')")
     expect(out).toContain('url(#grad)')
     expect(out).not.toContain('https://evil.example')
     expect(out).toContain('.a { background: none; }')

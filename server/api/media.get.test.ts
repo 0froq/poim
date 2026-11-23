@@ -7,14 +7,17 @@ function fakeEvent(path: string): H3Event {
 }
 
 function stubFetch(status: number, body?: unknown, headers: Record<string, string> = {}): void {
-  vi.stubGlobal('fetch', vi.fn(async () => ({
-    ok: status >= 200 && status < 300,
-    status,
-    headers: {
-      get: (name: string) => headers[name.toLowerCase()] ?? null,
-    },
-    body,
-  })))
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => ({
+      ok: status >= 200 && status < 300,
+      status,
+      headers: {
+        get: (name: string) => headers[name.toLowerCase()] ?? null,
+      },
+      body,
+    })),
+  )
 }
 
 afterEach(() => {

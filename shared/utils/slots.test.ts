@@ -16,8 +16,7 @@ describe('槽位白名单', () => {
       'badge',
       'brand',
     ]
-    for (const name of allowed)
-      expect(isPoimSlotName(name), name).toBe(true)
+    for (const name of allowed) expect(isPoimSlotName(name), name).toBe(true)
     expect(isPoimSlotName('payload')).toBe(false)
     expect(isPoimSlotName('author')).toBe(false)
     expect(isPoimSlotName('')).toBe(false)

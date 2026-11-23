@@ -20,7 +20,11 @@ const SAMPLE: PoimPost = {
   text: '把帖子做成卡片，第一行\n第二行，还有 <b>原始标签</b>',
   media: [
     { type: 'image', url: 'https://pbs.twimg.com/media/ABC.jpg', width: 1200, height: 800 },
-    { type: 'gif', url: 'https://video.twimg.com/ext_tw_video/1.mp4', poster: 'https://pbs.twimg.com/tweet_video_thumb/1.jpg' },
+    {
+      type: 'gif',
+      url: 'https://video.twimg.com/ext_tw_video/1.mp4',
+      poster: 'https://pbs.twimg.com/tweet_video_thumb/1.jpg',
+    },
   ],
   metrics: { likes: 1234, retweets: 56, replies: 7, views: 89012 },
 }
@@ -30,7 +34,11 @@ function buildEmbed(post: PoimPost, userCss = '', fill?: Partial<FillContext>): 
   const clean = sanitizeHtmlFragment(preset.html)
   const doc = new DOMParser().parseFromString(clean, 'text/html')
   const card = doc.body.firstElementChild as HTMLElement
-  fillTemplate(card, post, { mediaSrc: toProxyMediaUrl, brandHref: 'https://github.com/0froq/poim', ...fill })
+  fillTemplate(card, post, {
+    mediaSrc: toProxyMediaUrl,
+    brandHref: 'https://github.com/0froq/poim',
+    ...fill,
+  })
   return serializePoimEmbed({
     innerHTML: card.outerHTML,
     css: `${preset.css}\n${sanitizeUserCss(userCss)}`,
