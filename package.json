@@ -3,9 +3,9 @@
   "type": "module",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@10.15.0",
+  "packageManager": "pnpm@12.11.2",
   "engines": {
-    "node": ">=22.18.0"
+    "node": "^24.21.0 || >=26.0.0"
   },
   "scripts": {
     "dev": "nuxt dev",
@@ -16,8 +16,12 @@
     "preview:deploy": "pnpm generate && cf previews deploy",
     "worker:dev": "wrangler dev --local --experimental-new-config",
     "worker:typecheck": "tsc -p worker/tsconfig.json",
-    "lint": "eslint . --cache --concurrency=auto",
-    "lint:fix": "eslint . --cache --concurrency=auto --fix",
+    "lint": "vp lint -c vp.config.ts",
+    "lint:fix": "vp lint --fix -c vp.config.ts",
+    "fmt": "vp fmt -c vp.config.ts",
+    "fmt:check": "vp fmt --check -c vp.config.ts",
+    "typecheck": "nuxt typecheck",
+    "check": "vp run lint && vp run fmt:check && vp run typecheck && vp run worker:typecheck",
     "test": "vitest run",
     "test:watch": "vitest",
     "postinstall": "nuxt prepare",
@@ -40,10 +44,9 @@
     "zod": "catalog:prod"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "catalog:dev",
     "@cloudflare/workers-types": "catalog:dev",
-    "@nuxt/eslint": "catalog:dev",
-    "@unocss/eslint-plugin": "catalog:dev",
+    "@liangmi/vp-config": "catalog:dev",
+    "@types/node": "catalog:dev",
     "@unocss/nuxt": "catalog:dev",
     "@unocss/preset-attributify": "catalog:dev",
     "@unocss/preset-tagify": "catalog:dev",
@@ -52,13 +55,12 @@
     "@unocss/transformer-directives": "catalog:dev",
     "@unocss/transformer-variant-group": "catalog:dev",
     "cf": "catalog:dev",
-    "eslint": "catalog:dev",
-    "eslint-plugin-format": "catalog:dev",
     "happy-dom": "catalog:dev",
     "lint-staged": "catalog:dev",
     "simple-git-hooks": "catalog:dev",
     "typescript": "catalog:dev",
     "unocss": "catalog:dev",
+    "vite-plus": "catalog:dev",
     "vitest": "catalog:dev",
     "vue-tsc": "catalog:dev",
     "wrangler": "catalog:dev"
@@ -67,6 +69,9 @@
     "pre-commit": "pnpm i --frozen-lockfile --ignore-scripts --offline && npx lint-staged"
   },
   "lint-staged": {
-    "*": "eslint --fix"
+    "*": [
+      "vp lint --fix --no-error-on-unmatched-pattern -c vp.config.ts",
+      "vp fmt --no-error-on-unmatched-pattern -c vp.config.ts"
+    ]
   }
 }

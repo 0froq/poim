@@ -1,19 +1,10 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { defineNuxtConfig } from 'nuxt/config'
-import {
-  OG_IMAGE_URL,
-  SITE_DESCRIPTION,
-  SITE_NAME,
-  SITE_ORIGIN,
-} from './shared/utils/site'
+import { OG_IMAGE_URL, SITE_DESCRIPTION, SITE_NAME, SITE_ORIGIN } from './shared/utils/site'
 
 export default defineNuxtConfig({
-  modules: [
-    '@unocss/nuxt',
-    '@vueuse/nuxt',
-    '@nuxt/eslint',
-  ],
+  modules: ['@unocss/nuxt', '@vueuse/nuxt'],
   css: [
     '@fontsource-variable/geist/index.css',
     '@fontsource-variable/geist-mono/index.css',
@@ -49,10 +40,12 @@ export default defineNuxtConfig({
         { name: 'twitter:image:alt', content: SITE_DESCRIPTION },
       ],
       // Picks the shell theme before first paint so the paper never flashes the wrong stock.
-      script: [{
-        innerHTML: `try{var t=localStorage.getItem('poim-theme');document.documentElement.dataset.theme=t==='dark'||t==='light'?t:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch(e){}`,
-        tagPosition: 'head',
-      }],
+      script: [
+        {
+          innerHTML: `try{var t=localStorage.getItem('poim-theme');document.documentElement.dataset.theme=t==='dark'||t==='light'?t:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch(e){}`,
+          tagPosition: 'head',
+        },
+      ],
     },
   },
   build: {
@@ -78,12 +71,10 @@ export default defineNuxtConfig({
         {
           name: 'poim-raw-css',
           resolveId(source) {
-            if (source.includes('?raw'))
-              return source
+            if (source.includes('?raw')) return source
           },
           load(id) {
-            if (!id.includes('?raw'))
-              return null
+            if (!id.includes('?raw')) return null
             let file = id.split('?')[0]!
             if (file.startsWith('~'))
               file = fileURLToPath(new URL(`./app${file.slice(1)}`, import.meta.url))
@@ -91,11 +82,6 @@ export default defineNuxtConfig({
           },
         },
       ],
-    },
-  },
-  eslint: {
-    config: {
-      standalone: false,
     },
   },
   compatibilityDate: '2026-08-15',
