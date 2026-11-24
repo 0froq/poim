@@ -1,9 +1,3 @@
 {
-  "recommendations": [
-    "dbaeumer.vscode-eslint",
-    "antfu.pnpm-catalog-lens",
-    "antfu.iconify",
-    "antfu.unocss",
-    "vue.volar"
-  ]
+  "recommendations": ["antfu.pnpm-catalog-lens", "antfu.iconify", "antfu.unocss", "vue.volar"]
 }

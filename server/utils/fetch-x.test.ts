@@ -2,14 +2,13 @@ import type { FxTweet } from './fetch-x'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { mapFxTweet, resolveXTweet } from './fetch-x'
 
-type MockResult = { status: number, body?: unknown } | Error
+type MockResult = { status: number; body?: unknown } | Error
 
 function stubFetch(handler: (url: string) => MockResult): { urls: () => string[] } {
   const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
     const url = typeof input === 'string' ? input : String(input)
     const result = handler(url)
-    if (result instanceof Error)
-      throw result
+    if (result instanceof Error) throw result
     return {
       ok: result.status >= 200 && result.status < 300,
       status: result.status,
@@ -40,8 +39,20 @@ const fxTweet: FxTweet = {
   views: 678,
   media: {
     photos: [{ url: 'https://pbs.twimg.com/media/p1.jpg', width: 1200, height: 800 }],
-    gifs: [{ url: 'https://video.twimg.com/ext_tw_video/g1.mp4', thumbnail_url: 'https://pbs.twimg.com/g1.jpg' }],
-    videos: [{ url: 'https://video.twimg.com/ext_tw_video/v1.mp4', thumbnail_url: 'https://pbs.twimg.com/v1.jpg', width: 640, height: 360 }],
+    gifs: [
+      {
+        url: 'https://video.twimg.com/ext_tw_video/g1.mp4',
+        thumbnail_url: 'https://pbs.twimg.com/g1.jpg',
+      },
+    ],
+    videos: [
+      {
+        url: 'https://video.twimg.com/ext_tw_video/v1.mp4',
+        thumbnail_url: 'https://pbs.twimg.com/v1.jpg',
+        width: 640,
+        height: 360,
+      },
+    ],
   },
 }
 
@@ -62,8 +73,18 @@ describe('mapFxTweet', () => {
       },
       media: [
         { type: 'image', url: 'https://pbs.twimg.com/media/p1.jpg', width: 1200, height: 800 },
-        { type: 'gif', url: 'https://video.twimg.com/ext_tw_video/g1.mp4', poster: 'https://pbs.twimg.com/g1.jpg' },
-        { type: 'video', url: 'https://video.twimg.com/ext_tw_video/v1.mp4', poster: 'https://pbs.twimg.com/v1.jpg', width: 640, height: 360 },
+        {
+          type: 'gif',
+          url: 'https://video.twimg.com/ext_tw_video/g1.mp4',
+          poster: 'https://pbs.twimg.com/g1.jpg',
+        },
+        {
+          type: 'video',
+          url: 'https://video.twimg.com/ext_tw_video/v1.mp4',
+          poster: 'https://pbs.twimg.com/v1.jpg',
+          width: 640,
+          height: 360,
+        },
       ],
       metrics: { likes: 12, retweets: 34, replies: 5, views: 678 },
     })
@@ -78,26 +99,36 @@ describe('mapFxTweet', () => {
   })
 
   it('clamps quotes to one level', () => {
-    const post = mapFxTweet({
-      id: '1',
-      text: 'outer',
-      quote: {
-        id: '2',
-        text: 'inner',
-        quote: { id: '3', text: 'too deep' },
+    const post = mapFxTweet(
+      {
+        id: '1',
+        text: 'outer',
+        quote: {
+          id: '2',
+          text: 'inner',
+          quote: { id: '3', text: 'too deep' },
+        },
       },
-    }, 'url')
+      'url',
+    )
     expect(post.quote?.id).toBe('2')
     expect(post.quote?.quote).toBeUndefined()
   })
 
   it('maps reply handle and reposted_by without nested extra quotes', () => {
-    const post = mapFxTweet({
-      ...fxTweet,
-      replying_to: '@parent',
-      replying_to_status: '99',
-      reposted_by: { name: 'Fwd', screen_name: 'fwd', avatar_url: 'https://pbs.twimg.com/profile_images/fwd.png' },
-    }, 'url')
+    const post = mapFxTweet(
+      {
+        ...fxTweet,
+        replying_to: '@parent',
+        replying_to_status: '99',
+        reposted_by: {
+          name: 'Fwd',
+          screen_name: 'fwd',
+          avatar_url: 'https://pbs.twimg.com/profile_images/fwd.png',
+        },
+      },
+      'url',
+    )
     expect(post.replyToHandle).toBe('parent')
     expect(post.replyTo).toBeUndefined()
     expect(post.repostedBy).toEqual({
@@ -110,7 +141,7 @@ describe('mapFxTweet', () => {
 
 describe('resolveXTweet', () => {
   it('resolves via fx first and never calls syndication', async () => {
-    const fetchStub = stubFetch((url) => {
+    const fetchStub = stubFetch(url => {
       if (url.startsWith('https://api.fxtwitter.com/'))
         return { status: 200, body: { code: 200, tweet: fxTweet } }
       throw new Error('syndication should not be called')
@@ -147,9 +178,8 @@ describe('resolveXTweet', () => {
         user: { name: 'B', screen_name: 'b' },
       },
     }
-    const fetchStub = stubFetch((url) => {
-      if (url.startsWith('https://api.fxtwitter.com/'))
-        return { status: 502, body: {} }
+    const fetchStub = stubFetch(url => {
+      if (url.startsWith('https://api.fxtwitter.com/')) return { status: 502, body: {} }
       if (url.startsWith('https://cdn.syndication.twimg.com/tweet-result'))
         return { status: 200, body: syndicationTweet }
       throw new Error(`unexpected url: ${url}`)
@@ -165,7 +195,11 @@ describe('resolveXTweet', () => {
     expect(post.createdAt).toBe(new Date('Sat Aug 15 19:00:00 +0000 2026').toISOString())
     expect(post.media).toEqual([
       { type: 'image', url: 'https://pbs.twimg.com/media/p.jpg', width: 100, height: 50 },
-      { type: 'video', url: 'https://video.twimg.com/v.mp4', poster: 'https://pbs.twimg.com/v.jpg' },
+      {
+        type: 'video',
+        url: 'https://video.twimg.com/v.mp4',
+        poster: 'https://pbs.twimg.com/v.jpg',
+      },
     ])
     expect(post.metrics).toEqual({ likes: 7, replies: 3 })
     expect(post.quote).toMatchObject({
@@ -177,10 +211,12 @@ describe('resolveXTweet', () => {
   })
 
   it('treats fx network errors as unavailable and still falls back', async () => {
-    const fetchStub = stubFetch((url) => {
-      if (url.startsWith('https://api.fxtwitter.com/'))
-        return new Error('ECONNRESET')
-      return { status: 200, body: { id_str: '20', text: 'ok', user: { name: 'J', screen_name: 'j' } } }
+    const fetchStub = stubFetch(url => {
+      if (url.startsWith('https://api.fxtwitter.com/')) return new Error('ECONNRESET')
+      return {
+        status: 200,
+        body: { id_str: '20', text: 'ok', user: { name: 'J', screen_name: 'j' } },
+      }
     })
     const post = await resolveXTweet('20')
     expect(post.text).toBe('ok')
@@ -188,7 +224,7 @@ describe('resolveXTweet', () => {
   })
 
   it('treats fx private tweets as not found', async () => {
-    const fetchStub = stubFetch((url) => {
+    const fetchStub = stubFetch(url => {
       if (url.startsWith('https://api.fxtwitter.com/'))
         return { status: 401, body: { code: 401, message: 'PRIVATE_TWEET', tweet: null } }
       throw new Error('syndication should not be called')
@@ -201,9 +237,8 @@ describe('resolveXTweet', () => {
   })
 
   it('does not fall back when fx reports not found', async () => {
-    const fetchStub = stubFetch((url) => {
-      if (url.startsWith('https://api.fxtwitter.com/'))
-        return { status: 404, body: {} }
+    const fetchStub = stubFetch(url => {
+      if (url.startsWith('https://api.fxtwitter.com/')) return { status: 404, body: {} }
       throw new Error('syndication should not be called')
     })
     await expect(resolveXTweet('20')).rejects.toMatchObject({
@@ -214,9 +249,11 @@ describe('resolveXTweet', () => {
   })
 
   it('reports not found when syndication cannot find it either', async () => {
-    stubFetch(url => url.startsWith('https://api.fxtwitter.com/')
-      ? { status: 502, body: {} }
-      : { status: 404, body: {} })
+    stubFetch(url =>
+      url.startsWith('https://api.fxtwitter.com/')
+        ? { status: 502, body: {} }
+        : { status: 404, body: {} },
+    )
     await expect(resolveXTweet('20')).rejects.toMatchObject({
       statusCode: 404,
       data: { error: 'not_found' },
@@ -224,9 +261,11 @@ describe('resolveXTweet', () => {
   })
 
   it('treats syndication error payloads (no id_str) as not found', async () => {
-    stubFetch(url => url.startsWith('https://api.fxtwitter.com/')
-      ? { status: 502, body: {} }
-      : { status: 200, body: { errors: [{ code: 323 }] } })
+    stubFetch(url =>
+      url.startsWith('https://api.fxtwitter.com/')
+        ? { status: 502, body: {} }
+        : { status: 200, body: { errors: [{ code: 323 }] } },
+    )
     await expect(resolveXTweet('20')).rejects.toMatchObject({
       statusCode: 404,
       data: { error: 'not_found' },
@@ -247,13 +286,21 @@ describe('resolveXTweet', () => {
       url: 'https://x.com/parent/status/99',
       text: 'original post',
       author: { name: 'Parent', screen_name: 'parent', avatar_url: 'https://pbs.twimg.com/p.jpg' },
-      media: { photos: [{ url: 'https://pbs.twimg.com/media/orig.jpg', width: 1200, height: 800 }] },
+      media: {
+        photos: [{ url: 'https://pbs.twimg.com/media/orig.jpg', width: 1200, height: 800 }],
+      },
       replying_to: 'older',
       replying_to_status: '1',
     }
-    const fetchStub = stubFetch((url) => {
+    const fetchStub = stubFetch(url => {
       if (url.endsWith('/status/20'))
-        return { status: 200, body: { code: 200, tweet: { ...fxTweet, replying_to: 'parent', replying_to_status: '99' } } }
+        return {
+          status: 200,
+          body: {
+            code: 200,
+            tweet: { ...fxTweet, replying_to: 'parent', replying_to_status: '99' },
+          },
+        }
       if (url.endsWith('/status/99'))
         return { status: 200, body: { code: 200, tweet: parentTweet } }
       throw new Error(`unexpected url: ${url}`)
@@ -276,19 +323,27 @@ describe('resolveXTweet', () => {
   })
 
   it('still builds a parent flow stub when the original tweet cannot be fetched', async () => {
-    const fetchStub = stubFetch((url) => {
+    const fetchStub = stubFetch(url => {
       if (url.endsWith('/status/20')) {
         return {
           status: 200,
-          body: { code: 200, tweet: { ...fxTweet, replying_to: 'parent', replying_to_status: '99' } },
+          body: {
+            code: 200,
+            tweet: { ...fxTweet, replying_to: 'parent', replying_to_status: '99' },
+          },
         }
       }
-      if (url.includes('/status/99'))
-        return { status: 404, body: {} }
+      if (url.includes('/status/99')) return { status: 404, body: {} }
       if (url === 'https://api.fxtwitter.com/parent') {
         return {
           status: 200,
-          body: { user: { name: 'Parent Name', screen_name: 'parent', avatar_url: 'https://pbs.twimg.com/p.jpg' } },
+          body: {
+            user: {
+              name: 'Parent Name',
+              screen_name: 'parent',
+              avatar_url: 'https://pbs.twimg.com/p.jpg',
+            },
+          },
         }
       }
       throw new Error(`unexpected url: ${url}`)
@@ -308,9 +363,11 @@ describe('resolveXTweet', () => {
   })
 
   it('fails with unavailable when fx is down and syndication errors out', async () => {
-    stubFetch(url => url.startsWith('https://api.fxtwitter.com/')
-      ? { status: 500, body: {} }
-      : new Error('network down'))
+    stubFetch(url =>
+      url.startsWith('https://api.fxtwitter.com/')
+        ? { status: 500, body: {} }
+        : new Error('network down'),
+    )
     await expect(resolveXTweet('20')).rejects.toMatchObject({
       statusCode: 502,
       data: { error: 'unavailable' },

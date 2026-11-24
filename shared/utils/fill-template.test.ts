@@ -50,7 +50,9 @@ describe('fillTemplate', () => {
     const header = root.querySelector(':scope > .poim-header')!
     expect(header.querySelector('[data-poim="author-name"]')?.textContent).toBe('Main')
     expect(header.querySelector('[data-poim="author-handle"]')?.textContent).toBe('@main')
-    expect((header.querySelector('[data-poim="author-avatar"]') as HTMLImageElement).src).toContain('main.jpg')
+    expect((header.querySelector('[data-poim="author-avatar"]') as HTMLImageElement).src).toContain(
+      'main.jpg',
+    )
 
     const quote = root.querySelector('[data-poim="quote"]') as HTMLElement
     expect(quote.hidden).toBe(false)
@@ -59,7 +61,9 @@ describe('fillTemplate', () => {
     expect(qHeader.querySelector('[data-poim="author-handle"]')?.tagName).toBe('DIV')
     expect(qHeader.querySelector('[data-poim="author-name"]')?.textContent).toBe('Quoted')
     expect(qHeader.querySelector('[data-poim="author-handle"]')?.textContent).toBe('@quoted')
-    expect((qHeader.querySelector('[data-poim="author-avatar"]') as HTMLImageElement).src).toContain('quoted.jpg')
+    expect(
+      (qHeader.querySelector('[data-poim="author-avatar"]') as HTMLImageElement).src,
+    ).toContain('quoted.jpg')
     expect(quote.querySelector('[data-poim="text"]')?.textContent).toBe('inner')
   })
 
@@ -67,12 +71,20 @@ describe('fillTemplate', () => {
     document.body.innerHTML = getPreset('default').html
     const root = document.querySelector('.poim-card') as HTMLElement
     const post = emptyPost()
-    post.author = { name: 'Main', handle: 'main', avatar: 'https://pbs.twimg.com/profile_images/main.jpg' }
+    post.author = {
+      name: 'Main',
+      handle: 'main',
+      avatar: 'https://pbs.twimg.com/profile_images/main.jpg',
+    }
     post.text = 'outer'
     post.media = [{ type: 'image', url: 'https://pbs.twimg.com/media/main.jpg' }]
     post.repostedBy = { name: 'Fwd', handle: 'fwd' }
     const quoted = emptyPost()
-    quoted.author = { name: 'Quoted', handle: 'quoted', avatar: 'https://pbs.twimg.com/profile_images/quoted.jpg' }
+    quoted.author = {
+      name: 'Quoted',
+      handle: 'quoted',
+      avatar: 'https://pbs.twimg.com/profile_images/quoted.jpg',
+    }
     quoted.text = 'inner'
     quoted.media = [{ type: 'image', url: 'https://pbs.twimg.com/media/quoted.jpg' }]
     post.quote = quoted
@@ -97,7 +109,11 @@ describe('fillTemplate', () => {
     post.author = { name: 'Kid', handle: 'kid' }
     post.text = 'reply body'
     const parent = emptyPost()
-    parent.author = { name: 'Parent', handle: 'parent', avatar: 'https://pbs.twimg.com/profile_images/p.jpg' }
+    parent.author = {
+      name: 'Parent',
+      handle: 'parent',
+      avatar: 'https://pbs.twimg.com/profile_images/p.jpg',
+    }
     parent.text = 'original'
     parent.media = [{ type: 'image', url: 'https://pbs.twimg.com/media/orig.jpg' }]
     post.replyTo = parent
@@ -108,8 +124,12 @@ describe('fillTemplate', () => {
     expect(flow.classList.contains('poim-flow')).toBe(true)
     expect(flow.querySelector('[data-poim="author-name"]')?.textContent).toBe('Parent')
     expect(flow.querySelector('[data-poim="text"]')?.textContent).toBe('original')
-    expect((flow.querySelector('[data-poim="media"] img') as HTMLImageElement).src).toContain('orig.jpg')
-    expect(root.querySelector(':scope > .poim-header [data-poim="author-name"]')?.textContent).toBe('Kid')
+    expect((flow.querySelector('[data-poim="media"] img') as HTMLImageElement).src).toContain(
+      'orig.jpg',
+    )
+    expect(root.querySelector(':scope > .poim-header [data-poim="author-name"]')?.textContent).toBe(
+      'Kid',
+    )
     expect(root.querySelector(':scope > .poim-embed:not([data-poim])')).toBeNull()
     expect(root.querySelector('.poim-reply-to')).toBeNull()
   })
@@ -126,7 +146,9 @@ describe('fillTemplate', () => {
     expect(flow.hidden).toBe(false)
     expect(flow.querySelector('[data-poim="author-handle"]')?.textContent).toBe('@parent')
     expect((flow.querySelector('[data-poim="text"]') as HTMLElement).hidden).toBe(true)
-    expect(root.querySelector(':scope > .poim-header [data-poim="author-name"]')?.textContent).toBe('Kid')
+    expect(root.querySelector(':scope > .poim-header [data-poim="author-name"]')?.textContent).toBe(
+      'Kid',
+    )
     expect(root.querySelector('.poim-reply-to')).toBeNull()
   })
 
@@ -145,7 +167,9 @@ describe('fillTemplate', () => {
 
     const embed = root.querySelector(':scope > .poim-embed:not([data-poim])') as HTMLElement
     expect(embed).toBeTruthy()
-    expect(embed.querySelector(':scope > .poim-header [data-poim="author-name"]')?.textContent).toBe('Main')
+    expect(
+      embed.querySelector(':scope > .poim-header [data-poim="author-name"]')?.textContent,
+    ).toBe('Main')
     expect(embed.querySelector('[data-poim="quote"] [data-poim="text"]')?.textContent).toBe('inner')
   })
 
@@ -185,7 +209,7 @@ describe('serializePoimEmbed', () => {
 })
 
 describe('元信息显示开关（metrics / fetchedAt / 来源行）', () => {
-  function rootWithMeta(): { root: HTMLElement, metrics: HTMLElement, badge: HTMLElement } {
+  function rootWithMeta(): { root: HTMLElement; metrics: HTMLElement; badge: HTMLElement } {
     document.body.innerHTML = `
       <div class="poim-card">
         <div data-poim="metrics"></div>

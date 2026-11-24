@@ -50,7 +50,11 @@ export interface FxTweet {
 
 const FETCH_TIMEOUT_MS = 8_000
 
-function failure(statusCode: 404 | 502, error: 'not_found' | 'unavailable', message: string): H3Error {
+function failure(
+  statusCode: 404 | 502,
+  error: 'not_found' | 'unavailable',
+  message: string,
+): H3Error {
   return createError({
     statusCode,
     statusMessage: error,
@@ -77,26 +81,20 @@ async function fetchJson(url: string): Promise<unknown> {
       headers: { 'accept': 'application/json', 'user-agent': 'poim/0.1' },
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     })
-    if (res.status === 404 || res.status === 401)
-      throw notFound()
-    if (!res.ok)
-      throw unavailable()
-    return await res.json() as unknown
-  }
-  catch (error) {
-    if (error instanceof H3Error)
-      throw error
+    if (res.status === 404 || res.status === 401) throw notFound()
+    if (!res.ok) throw unavailable()
+    return (await res.json()) as unknown
+  } catch (error) {
+    if (error instanceof H3Error) throw error
     throw unavailable()
   }
 }
 
 function createdAt(tweet: FxTweet): string | undefined {
-  if (tweet.created_timestamp)
-    return new Date(tweet.created_timestamp * 1000).toISOString()
+  if (tweet.created_timestamp) return new Date(tweet.created_timestamp * 1000).toISOString()
   if (tweet.created_at) {
     const parsed = new Date(tweet.created_at)
-    if (!Number.isNaN(parsed.getTime()))
-      return parsed.toISOString()
+    if (!Number.isNaN(parsed.getTime())) return parsed.toISOString()
   }
   return undefined
 }
@@ -107,8 +105,7 @@ function mapMedia(tweet: FxTweet): PoimMedia[] {
   const gifs = tweet.media?.gifs ?? []
   const items: PoimMedia[] = []
   for (const photo of photos) {
-    if (!photo.url)
-      continue
+    if (!photo.url) continue
     items.push({
       type: 'image',
       url: photo.url,
@@ -117,8 +114,7 @@ function mapMedia(tweet: FxTweet): PoimMedia[] {
     })
   }
   for (const gif of gifs) {
-    if (!gif.url)
-      continue
+    if (!gif.url) continue
     items.push({
       type: 'gif',
       url: gif.url,
@@ -128,8 +124,7 @@ function mapMedia(tweet: FxTweet): PoimMedia[] {
     })
   }
   for (const video of videos) {
-    if (!video.url)
-      continue
+    if (!video.url) continue
     items.push({
       type: 'video',
       url: video.url,
@@ -164,8 +159,7 @@ export function mapFxTweet(tweet: FxTweet, source: PoimPost['source']): PoimPost
     },
   }
   const replyHandle = asHandle(tweet.replying_to)
-  if (replyHandle)
-    post.replyToHandle = replyHandle
+  if (replyHandle) post.replyToHandle = replyHandle
   if (tweet.reposted_by) {
     post.repostedBy = {
       name: tweet.reposted_by.name ?? '',
@@ -174,15 +168,16 @@ export function mapFxTweet(tweet: FxTweet, source: PoimPost['source']): PoimPost
     }
   }
   // 契约：只保留一层引用（quote）
-  if (tweet.quote)
-    post.quote = mapFxTweet({ ...tweet.quote, quote: undefined }, source)
+  if (tweet.quote) post.quote = mapFxTweet({ ...tweet.quote, quote: undefined }, source)
   return post
 }
 
 export async function fetchFxTweet(id: string): Promise<FxTweet> {
-  const body = await fetchJson(`https://api.fxtwitter.com/status/${id}`) as { code?: number, tweet?: FxTweet | null }
-  if (!body.tweet)
-    throw notFound()
+  const body = (await fetchJson(`https://api.fxtwitter.com/status/${id}`)) as {
+    code?: number
+    tweet?: FxTweet | null
+  }
+  if (!body.tweet) throw notFound()
   return body.tweet
 }
 
@@ -204,7 +199,7 @@ interface SyndicationPhoto {
 
 interface SyndicationVideo {
   poster?: string
-  variants?: { type?: string, src?: string }[]
+  variants?: { type?: string; src?: string }[]
 }
 
 interface SyndicationTweet {
@@ -242,8 +237,7 @@ function mapSyndicationTweet(body: SyndicationTweet): FxTweet {
         : [],
     },
   }
-  if (body.quoted_tweet)
-    tweet.quote = mapSyndicationTweet(body.quoted_tweet)
+  if (body.quoted_tweet) tweet.quote = mapSyndicationTweet(body.quoted_tweet)
   return tweet
 }
 
@@ -252,27 +246,22 @@ export async function fetchSyndicationTweet(id: string): Promise<FxTweet> {
   url.searchParams.set('id', id)
   url.searchParams.set('lang', 'en')
   url.searchParams.set('token', syndicationToken(id))
-  const body = await fetchJson(url.toString()) as SyndicationTweet | null
+  const body = (await fetchJson(url.toString())) as SyndicationTweet | null
   // 200 但无 id_str（errors 载荷）→ 视为不可见（私密 / 年龄限制等）
-  if (!body?.id_str)
-    throw notFound()
+  if (!body?.id_str) throw notFound()
   return mapSyndicationTweet(body)
 }
 
 async function resolveRawTweet(id: string): Promise<FxTweet> {
   try {
     return await fetchFxTweet(id)
-  }
-  catch (error) {
+  } catch (error) {
     // FxEmbed 明确 404（删除/私密）是权威结论，不再回落 syndication
-    if (isFailure(error, 'not_found'))
-      throw error
+    if (isFailure(error, 'not_found')) throw error
     try {
       return await fetchSyndicationTweet(id)
-    }
-    catch (fallbackError) {
-      if (isFailure(fallbackError, 'not_found'))
-        throw fallbackError
+    } catch (fallbackError) {
+      if (isFailure(fallbackError, 'not_found')) throw fallbackError
       // 两个第三方都不可用 → 明确失败态，不冒充已拉取
       throw unavailable()
     }
@@ -280,15 +269,13 @@ async function resolveRawTweet(id: string): Promise<FxTweet> {
 }
 
 function asHandle(raw: unknown): string | undefined {
-  if (typeof raw !== 'string')
-    return undefined
+  if (typeof raw !== 'string') return undefined
   const handle = raw.replace(/^@/, '').trim()
   return handle || undefined
 }
 
 function asStatusId(raw: unknown): string | undefined {
-  if (raw == null || raw === '')
-    return undefined
+  if (raw == null || raw === '') return undefined
   const id = String(raw).trim()
   return id || undefined
 }
@@ -306,10 +293,11 @@ function stubParentPost(handle?: string, id?: string): PoimPost {
 
 async function fetchFxUser(handle: string): Promise<FxAuthor | null> {
   try {
-    const body = await fetchJson(`https://api.fxtwitter.com/${encodeURIComponent(handle)}`) as { user?: FxAuthor | null }
+    const body = (await fetchJson(`https://api.fxtwitter.com/${encodeURIComponent(handle)}`)) as {
+      user?: FxAuthor | null
+    }
     return body.user ?? null
-  }
-  catch {
+  } catch {
     return null
   }
 }
@@ -317,18 +305,19 @@ async function fetchFxUser(handle: string): Promise<FxAuthor | null> {
 async function resolveParentPost(tweet: FxTweet, childId: string): Promise<PoimPost | undefined> {
   const handle = asHandle(tweet.replying_to)
   const parentId = asStatusId(tweet.replying_to_status)
-  if (!handle && !parentId)
-    return undefined
+  if (!handle && !parentId) return undefined
   if (parentId && parentId !== childId) {
     try {
       const parentTweet = await resolveRawTweet(parentId)
-      return mapFxTweet({
-        ...parentTweet,
-        replying_to: undefined,
-        replying_to_status: undefined,
-      }, 'url')
-    }
-    catch {
+      return mapFxTweet(
+        {
+          ...parentTweet,
+          replying_to: undefined,
+          replying_to_status: undefined,
+        },
+        'url',
+      )
+    } catch {
       // 私密/删除：仍用同宽流画出原帖作者
     }
   }
@@ -350,7 +339,6 @@ export async function resolveXTweet(id: string): Promise<PoimPost> {
   const tweet = await resolveRawTweet(id)
   const post = mapFxTweet(tweet, 'url')
   const parent = await resolveParentPost(tweet, post.id ?? id)
-  if (parent)
-    post.replyTo = parent
+  if (parent) post.replyTo = parent
   return post
 }

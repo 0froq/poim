@@ -25,8 +25,7 @@ function absolutizeMedia(root: HTMLElement): void {
   for (const node of root.querySelectorAll<HTMLElement>('img, video, source')) {
     for (const attr of ['src', 'poster'] as const) {
       const value = node.getAttribute(attr)
-      if (value)
-        node.setAttribute(attr, absolutizeProxyUrl(value, window.location.origin))
+      if (value) node.setAttribute(attr, absolutizeProxyUrl(value, window.location.origin))
     }
   }
 }
@@ -34,20 +33,16 @@ function absolutizeMedia(root: HTMLElement): void {
 function mediaFileName(raw: string): string {
   try {
     const base = new URL(raw).pathname.split('/').pop()
-    if (base?.endsWith('.mp4'))
-      return base
-  }
-  catch {}
+    if (base?.endsWith('.mp4')) return base
+  } catch {}
   return 'poim-media.mp4'
 }
 
 async function copyEmbed(): Promise<void> {
-  if (!gen.ready)
-    return
+  if (!gen.ready) return
   const card = preview.value?.getInnerCard()
   const css = preview.value?.combinedCss()
-  if (!card || !css)
-    return
+  if (!card || !css) return
   const clone = card.cloneNode(true) as HTMLElement
   absolutizeMedia(clone)
   const html = serializePoimEmbed({
@@ -64,11 +59,9 @@ async function copyEmbed(): Promise<void> {
 }
 
 async function downloadPng(): Promise<void> {
-  if (!gen.ready)
-    return
+  if (!gen.ready) return
   const card = preview.value?.getInnerCard()
-  if (!card)
-    return
+  if (!card) return
   pngUrl.value = await domToPng(card, { scale: 2 })
   const a = document.createElement('a')
   a.href = pngUrl.value
@@ -78,8 +71,7 @@ async function downloadPng(): Promise<void> {
 
 function downloadMedia(): void {
   const media = gen.post.media.find(item => item.type === 'video' || item.type === 'gif')
-  if (!media)
-    return
+  if (!media) return
   // 原片原样下载（v1 不转码）：走同源代理，<a download> 触发保存
   const href = absolutizeProxyUrl(toProxyMediaUrl(media.url), window.location.origin)
   const a = document.createElement('a')
@@ -97,12 +89,8 @@ const hasMotion = computed(() =>
   <div class="tool">
     <section class="tool-form">
       <div>
-        <h1 class="tool-title">
-          做成一张卡片
-        </h1>
-        <p class="tool-lede">
-          贴一条 X 状态链接，导出可嵌入的卡片和 PNG。
-        </p>
+        <h1 class="tool-title"> 做成一张卡片 </h1>
+        <p class="tool-lede"> 贴一条 X 状态链接，导出可嵌入的卡片和 PNG。 </p>
       </div>
 
       <TextInput
@@ -188,15 +176,11 @@ const hasMotion = computed(() =>
             贴一条链接，卡片会出现在这里。
           </p>
           <template #fallback>
-            <p class="stage-empty">
-              预览在客户端绘制
-            </p>
+            <p class="stage-empty"> 预览在客户端绘制 </p>
           </template>
         </ClientOnly>
       </div>
-      <p class="stage-note">
-        预览即导出 · PNG 为当前帧
-      </p>
+      <p class="stage-note"> 预览即导出 · PNG 为当前帧 </p>
       <div class="tool-actions">
         <Button
           :disabled="!gen.ready"

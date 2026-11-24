@@ -12,7 +12,7 @@ const SLOT_NAMES = [
   'brand',
 ] as const
 
-export type PoimSlotName = typeof SLOT_NAMES[number]
+export type PoimSlotName = (typeof SLOT_NAMES)[number]
 
 export function isPoimSlotName(value: string): value is PoimSlotName {
   return (SLOT_NAMES as readonly string[]).includes(value)
@@ -20,9 +20,8 @@ export function isPoimSlotName(value: string): value is PoimSlotName {
 
 export function queryPoimSlots(root: ParentNode, name: PoimSlotName): HTMLElement[] {
   const found: HTMLElement[] = []
-  root.querySelectorAll(`[data-poim="${name}"], #${CSS.escape(name)}`).forEach((node) => {
-    if (node instanceof HTMLElement)
-      found.push(node)
+  root.querySelectorAll(`[data-poim="${name}"], #${CSS.escape(name)}`).forEach(node => {
+    if (node instanceof HTMLElement) found.push(node)
   })
   return found
 }

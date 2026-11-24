@@ -18,8 +18,9 @@ describe('isAllowedMediaUrl', () => {
 
 describe('toProxyMediaUrl', () => {
   it('白名单媒体转同源代理；data/相对/外站原样返回', () => {
-    expect(toProxyMediaUrl('https://pbs.twimg.com/media/ABC.jpg'))
-      .toBe('/api/media?url=https%3A%2F%2Fpbs.twimg.com%2Fmedia%2FABC.jpg')
+    expect(toProxyMediaUrl('https://pbs.twimg.com/media/ABC.jpg')).toBe(
+      '/api/media?url=https%3A%2F%2Fpbs.twimg.com%2Fmedia%2FABC.jpg',
+    )
     expect(toProxyMediaUrl('data:image/png;base64,AAA')).toBe('data:image/png;base64,AAA')
     expect(toProxyMediaUrl('/api/media?url=x')).toBe('/api/media?url=x')
     expect(toProxyMediaUrl('https://evil.example/x.jpg')).toBe('https://evil.example/x.jpg')
@@ -29,16 +30,20 @@ describe('toProxyMediaUrl', () => {
 
 describe('absolutizeProxyUrl', () => {
   it('相对代理路径补成绝对 URL，其余原样', () => {
-    expect(absolutizeProxyUrl('/api/media?url=x', 'https://poim.example'))
-      .toBe('https://poim.example/api/media?url=x')
-    expect(absolutizeProxyUrl('data:image/png;base64,AAA', 'https://poim.example'))
-      .toBe('data:image/png;base64,AAA')
-    expect(absolutizeProxyUrl('https://pbs.twimg.com/media/ABC.jpg', 'https://poim.example'))
-      .toBe('https://pbs.twimg.com/media/ABC.jpg')
+    expect(absolutizeProxyUrl('/api/media?url=x', 'https://poim.example')).toBe(
+      'https://poim.example/api/media?url=x',
+    )
+    expect(absolutizeProxyUrl('data:image/png;base64,AAA', 'https://poim.example')).toBe(
+      'data:image/png;base64,AAA',
+    )
+    expect(absolutizeProxyUrl('https://pbs.twimg.com/media/ABC.jpg', 'https://poim.example')).toBe(
+      'https://pbs.twimg.com/media/ABC.jpg',
+    )
   })
 
   it('origin 带路径时以 origin 为基准拼接', () => {
-    expect(absolutizeProxyUrl('/api/media?url=x', 'https://poim.example/sub'))
-      .toBe('https://poim.example/api/media?url=x')
+    expect(absolutizeProxyUrl('/api/media?url=x', 'https://poim.example/sub')).toBe(
+      'https://poim.example/api/media?url=x',
+    )
   })
 })
